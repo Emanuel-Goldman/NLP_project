@@ -1,6 +1,17 @@
-import spacy
-import matplotlib.pyplot as plt
 from collections import Counter
+import gensim
+from gensim import models
+import matplotlib.pyplot as plt
+import spacy
+import sklearn
+from gensim.corpora import Dictionary
+from gensim.models import LdaModel
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -54,11 +65,7 @@ And so, the tale of Elara and the Tears of Stardust became a cherished legend,
 passed down through generations, inspiring others to seek the extraordinary within themselves and the world around them.""")
 
 doc_2 = nlp("hi there. I. am. a. good. boy.")
-# תדירות
-# נושאים
-# אורך משפט
-# חלקי דיבר
-# למטיזיישן
+
 
 # we have a bug in this function - we get an empty token that we don't want.
 def most_freq_words(doc):
@@ -94,21 +101,29 @@ def text_to_lemma_pos(doc):
     return lemmas_and_pos
 
 
+def text_to_clean_lemma(text):
+    nlp = spacy.load("en_core_web_sm")
+    tokens = nlp(text)
+    lemmas = [token.lemma_ for token in tokens]
+    return lemmas
+
+
 def texts_to_docs(text_list):
     return [nlp(text) for text in text_list]
+
+
 def plot_average_sentence_length(doc_list):
-
-
     average_sentences = []
 
     for doc in doc_list:
         average_sentences.append(average_sentence_length(doc))
 
-    plt.bar(range(1, len(doc_list)+1), average_sentences)
+    plt.bar(range(1, len(doc_list) + 1), average_sentences)
     plt.xlabel('Document')
     plt.ylabel('Average Sentences')
     plt.title('Average Number of Sentences in Different Documents')
     plt.show()
+
 
 def length_of_sentence(sentence):
     return len(sentence.split())
@@ -118,21 +133,45 @@ def average_sentence_length(doc):
     sum = 0
     for sentence in classifier_text_to_sentences(doc):
         sum += length_of_sentence(sentence)
-    return sum/len(classifier_text_to_sentences(doc))
+    return sum / len(classifier_text_to_sentences(doc))
 
 
 def classifier_text_to_sentences(doc):
-   # it add the /n to the sentences  - maybe we wont to fix this?
+    # it add the /n to the sentences  - maybe we wont to fix this?
     sentences = [sentence.text for sentence in doc.sents]
     return sentences
 
 
+def topic_modeling_LDA(corpus):
+    # We add some words to the stop word list
+    texts, article = [], []
+
+    for word in doc:
+
+        if word.text != '\n' and not word.is_stop and not word.is_punct and not word.like_num and word.text != 'I':
+            article.append(word.lemma_)
+
+        if word.text == '\n':
+            texts.append(article)
+            article = []
+
+    bigram = gensim.models.phrases.Phrases(texts)
+    texts = [bigram[line] for line in texts]
+    texts = [bigram[line] for line in texts]
+
+    dictionary = Dictionary(texts)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    lda_model = LdaModel(corpus=corpus, num_topics=10, id2word=dictionary)
+    print(lda_model.show_topics())
+
+
+def text_to_vec(text):
+    doc = nlp(text)
+
+
 def main():
-    print(text_to_lemma_pos(doc))
-    texts = ['I love my dog', 'I love my', 'I love my dog', 'I love my life']
-    docs = texts_to_docs(texts)
-    plot_average_sentence_length(docs)
-    print(texts_to_docs(texts))
+    topic_modeling_LDA(doc)
+    print(sklearn.__version__)
 
 
 if __name__ == "__main__":
