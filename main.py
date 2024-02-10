@@ -6,12 +6,13 @@ import spacy
 import sklearn
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel
+import pyLDAvis.gensim
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+#from tensorflow.keras.models import Sequential
+#from tensorflow.keras.layers import Dense
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -163,6 +164,8 @@ def topic_modeling_LDA(corpus):
     corpus = [dictionary.doc2bow(text) for text in texts]
     lda_model = LdaModel(corpus=corpus, num_topics=10, id2word=dictionary)
     print(lda_model.show_topics())
+    vis_data = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary)
+    pyLDAvis.save_html(vis_data, 'lda_visualization.html')
 
 
 def text_to_vec(text):

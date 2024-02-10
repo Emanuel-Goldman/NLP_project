@@ -6,7 +6,7 @@ def name_file(book_name,chap_num,year):
 def text_to_chapter_list(book):
     chapters_list = book.split("CHAPTER ")
     return chapters_list
-delete_me = 1
+
 def clean_book(book_text):
     start = find_position_chap1(book_text)+8
     end = find_position_last_chap(book_text)
