@@ -7,6 +7,31 @@ def text_to_chapter_list(book):
     chapters_list = book.split("CHAPTER ")
     return chapters_list
 
+def get_chap_list(path):
+    folder = r"C:\Users\Lenovo\OneDrive - post.bgu.ac.il\שולחן העבודה\Charles Dickens Books\Books"
+    books_names = get_books_names(folder)
+
+    for book_name in books_names:
+
+        chap_list = []
+        year = get_year(book_name)
+        print("the book name is: " + book_name + " and the year is: " + year)
+
+        book_path = folder + "\\" + book_name + ".txt"
+
+        with open(book_path, "r", encoding="utf-8") as file:
+            book_text = file.read()
+
+        clean_book_text = clean_book(book_text)
+
+        chapters = text_to_chapter_list(clean_book_text)
+
+        for chapter in chapters:
+            # create a file for each chapter
+            chap_list.append([chapter, year])
+    return chap_list
+
+
 def clean_book(book_text):
     start = find_position_chap1(book_text)+8
     end = find_position_last_chap(book_text)
@@ -72,7 +97,7 @@ def main():
         for chapter in chapters:
             #create a file for each chapter
             chap_num = chapters.index(chapter)
-            chaps_path = r"C:\Users\Lenovo\OneDrive - post.bgu.ac.il\שולחן העבודה\Charles Dickens Books\Chapters"
+            chaps_path = r"C:\Users\Lenovo\PycharmProjects\NLP_project\chaps"
             chap_path = chaps_path + "\\" + book_name + " " + str(chap_num) + ".txt"
             with open(chap_path, "w", encoding="utf-8") as file:
                 file.write(chapter)
