@@ -1,11 +1,14 @@
 import os
 
+
 def name_file(book_name,chap_num,year):
     return book_name + " " + str(chap_num) + " " + str(year) + ".txt"
+
 
 def text_to_chapter_list(book):
     chapters_list = book.split("CHAPTER ")
     return chapters_list
+
 
 def get_chap_list(path):
     folder = r"C:\Users\Lenovo\OneDrive - post.bgu.ac.il\שולחן העבודה\Charles Dickens Books\Books"
@@ -38,23 +41,14 @@ def clean_book(book_text):
     clean_book_text = book_text[start:end]
     return clean_book_text
 
+
 def get_year(book_name):
     year_string = ""
     for char in book_name:
         if char.isdigit():
             year_string += char
     return year_string
-'''
-def create_chapters(book,book_name):
-    chapter_list = book_to_chapter_list(book)
-    year = get_year(book_name)
-    for chapter in chapter_list:
-        file_name = name_file(book_name,chapter,year)
-        file = open(file_name,"w",encoding="utf-8")
-        file.write(chapter)
-        file.close()
-    return
-    '''
+
 
 def get_books_names(folder):
     books_names = []
@@ -64,11 +58,17 @@ def get_books_names(folder):
             books_names.append(file_name)
     return books_names
 
+
 def find_position_chap1(text):
-    position = text.find("CHAPTER ")
+    position = text.find("(start)")
     if position == -1:
-        position = text.find("Chapter ")
+        position = text.find("CHAPTER I.\n")
+    if position == -1:
+        position = text.find("Chapter I.\n")
+    if position == -1:
+        position = text.find("CHAPTER 1. I AM BORN\n")
     return position
+
 
 def find_position_last_chap(text):
     position = text.find('*** END OF THE PROJECT GUTENBERG EBOOK')
@@ -102,7 +102,7 @@ def main():
             with open(chap_path, "w", encoding="utf-8") as file:
                 file.write(chapter)
 
-    #counting number of chapters
+# counting number of chapters
     count = 0
     for file in os.listdir(chaps_path):
         if file.endswith(".txt"):
@@ -112,6 +112,5 @@ def main():
     return
 
 
-   
 if __name__ == "__main__": 
     main()

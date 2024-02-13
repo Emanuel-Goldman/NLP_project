@@ -88,7 +88,7 @@ def most_freq_words(doc):  # we have a bug in this function - we get an empty to
         print(f'{word}: {freq} times')
 
 
-def text_to_tokens(text, doc):
+def text_to_tokens(text,doc):
     tokens = [token.text for token in doc]
     return tokens
 
