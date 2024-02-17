@@ -8,13 +8,12 @@ from gensim.corpora import Dictionary
 from gensim.models import LdaModel
 import pyLDAvis.gensim
 import deviding_to_chaps
+import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
-from tensorflow import keras
-from tensorflow.keras import layers
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
@@ -24,10 +23,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
 
-    # Assuming 'df' is your DataFrame with features (X) and target (Y)
+# Assuming 'df' is your DataFrame with features (X) and target (Y)
 # For example, X contains features like 'feature1', 'feature2', etc., and Y contains the target variable.
 
 # Sample data creation
@@ -46,26 +43,6 @@ from tensorflow.keras.layers import Dense
 # scaler = StandardScaler()
 # X_train_scaled = scaler.fit_transform(X_train)
 # X_test_scaled = scaler.transform(X_test)
-
-# Build a simple neural network model
-# model = keras.Sequential([
-#     layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
-#     layers.Dense(32, activation='relu'),
-#     layers.Dense(1)  # Output layer with 1 neuron (regression)
-# ])
-
-# Compile the model
-#model.compile(optimizer='adam', loss='mean_squared_error')
-
-# Train the model
-# model.fit(X_train_scaled, Y_train, epochs=50, batch_size=16, verbose=2)
-#
-# # Make predictions on the test set
-# predictions = model.predict(X_test_scaled)
-#
-# # Evaluate the model
-# mse = mean_squared_error(Y_test, predictions)
-# print(f"Mean Squared Error on Test Set: {mse}")
 
 
 # ------------------------------- End of AI part ------------------------------
@@ -186,9 +163,19 @@ def get_max_num_of_sentences(chap_list):
     return max_num_of_sentences
 
 
+def load_txt_files(directory):
+    file_contents = []
+    for filename in os.listdir(directory):
+        filepath = os.path.join(directory, filename)
+        with open(filepath, "r", encoding="utf-8") as file:
+            file_contents.append(file.read())
+    return file_contents
+
+
 def main():
-    print(sklearn.__version__)
-    chap_list = deviding_to_chaps.get_chap_list(r"C:\Users\Lenovo\PycharmProjects\NLP_project\chaps")
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
+    chap_list = load_txt_files(CHAPS_PATH)
     print(chap_list)
     print(get_max_num_of_sentences(chap_list))
 
