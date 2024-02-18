@@ -1,9 +1,3 @@
-41
-
-Containing some Romantic Passages between Mrs. Nickleby and the Gentleman
-in the Small-clothes next Door
-
-
 Ever since her last momentous conversation with her son, Mrs. Nickleby
 had begun to display unusual care in the adornment of her person,
 gradually superadding to those staid and matronly habiliments,
@@ -571,6 +565,3 @@ with so much thought, and care, and prudence--not as if he ran into the
 streets, and went down upon his knees to the first chit of a girl he
 met, as a madman would! No, no, Kate, there's a great deal too much
 method in HIS madness; depend upon that, my dear.'
-
-
-

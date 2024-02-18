@@ -1,10 +1,3 @@
-FOUR
-
-FROM WHICH IT WILL APPEAR THAT IF UNION BE STRENGTH, AND FAMILY
-AFFECTION BE PLEASANT TO CONTEMPLATE, THE CHUZZLEWITS WERE THE STRONGEST
-AND MOST AGREEABLE FAMILY IN THE WORLD
-
-
 That worthy man Mr Pecksniff having taken leave of his cousin in the
 solemn terms recited in the last chapter, withdrew to his own home, and
 remained there three whole days; not so much as going out for a walk
@@ -876,6 +869,3 @@ he could comfortably afford to part with. This view of his affairs
 yielded him great consolation; and the fact deserves to be noted, as
 showing with what ease a good man may be consoled under circumstances of
 failure and disappointment.
-
-
-
