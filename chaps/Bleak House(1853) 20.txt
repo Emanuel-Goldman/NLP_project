@@ -1,8 +1,3 @@
-XX
-
-A New Lodger
-
-
 The long vacation saunters on towards term-time like an idle river
 very leisurely strolling down a flat country to the sea. Mr. Guppy
 saunters along with it congenially. He has blunted the blade of his
@@ -653,7 +648,3 @@ firstly, that if her Johnny was to have whiskers, she could wish ’em
 to be identically like that young man’s; and secondly, “Mark my
 words, Mrs. Perkins, ma’am, and don’t you be surprised, Lord bless
 you, if that young man comes in at last for old Krook’s money!”
-
-
-
-

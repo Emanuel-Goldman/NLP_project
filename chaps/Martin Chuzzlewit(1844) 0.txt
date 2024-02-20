@@ -1,8 +1,3 @@
-ONE
-
-INTRODUCTORY, CONCERNING THE PEDIGREE OF THE CHUZZLEWIT FAMILY
-
-
 As no lady or gentleman, with any claims to polite breeding, can
 possibly sympathize with the Chuzzlewit Family without being first
 assured of the extreme antiquity of the race, it is a great satisfaction
@@ -232,6 +227,3 @@ trenching on the Blumenbach theory as to the descendants of Adam having
 a vast number of qualities which belong more particularly to swine than
 to any other class of animals in the creation, that some men certainly
 are remarkable for taking uncommon good care of themselves.
-
-
-

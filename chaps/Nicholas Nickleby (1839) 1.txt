@@ -1,8 +1,3 @@
-1
-
-Introduces all the Rest
-
-
 There once lived, in a sequestered part of the county of Devonshire, one
 Mr. Godfrey Nickleby: a worthy gentleman, who, taking it into his head
 rather late in life that he must get married, and not being young enough
@@ -212,6 +207,3 @@ This fit of wandering past, he solemnly commended them to One who never
 deserted the widow or her fatherless children, and, smiling gently on
 them, turned upon his face, and observed, that he thought he could fall
 asleep.
-
-
-

@@ -1,9 +1,3 @@
-2
-
-Of Mr. Ralph Nickleby, and his Establishments, and his Undertakings, and
-of a great Joint Stock Company of vast national Importance
-
-
 Mr. Ralph Nickleby was not, strictly speaking, what you would call
 a merchant, neither was he a banker, nor an attorney, nor a special
 pleader, nor a notary. He was certainly not a tradesman, and still less
@@ -470,6 +464,3 @@ went to the office to lunch, as they did every day at half-past one
 o'clock; and to remunerate themselves for which trouble, (as the company
 was yet in its infancy,) they only charged three guineas each man for
 every such attendance.
-
-
-
