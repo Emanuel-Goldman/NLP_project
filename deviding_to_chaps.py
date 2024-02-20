@@ -1,13 +1,30 @@
 import os
 
 
-def name_file(book_name,chap_num,year):
+def name_file(book_name, chap_num, year):
     return book_name + " " + str(chap_num) + " " + str(year) + ".txt"
 
 
 def text_to_chapter_list(book):
     chapters_list = book.split("CHAPTER ")
     return chapters_list
+
+
+# def get_book_list():
+#     folder = r"C:\Users\User\PycharmProjects\NLP_project\Books"
+#     books_names = get_books_names(folder)
+#
+#     books_list = []
+#     for book_name in books_names:
+#         year = get_year(book_name)
+#         print("the book name is: " + book_name + " and the year is: " + year)
+#
+#         book_path = folder + "\\" + book_name + ".txt"
+#
+#         with open(book_path, "r", encoding="utf-8") as file:
+#             book_text = file.read()
+#         books_list.append({'text': book_text, 'year': year})
+#     return books_list
 
 
 def get_chap_list(path):
@@ -36,7 +53,7 @@ def get_chap_list(path):
 
 
 def clean_book(book_text):
-    start = find_position_chap1(book_text)+8
+    start = find_position_chap1(book_text) + 8
     end = find_position_last_chap(book_text)
     clean_book_text = book_text[start:end]
     return clean_book_text
@@ -76,10 +93,9 @@ def find_position_last_chap(text):
 
 
 def main():
-
     folder = r"C:\Users\Lenovo\OneDrive - post.bgu.ac.il\שולחן העבודה\Charles Dickens Books\Books"
     books_names = get_books_names(folder)
-   
+
     for book_name in books_names:
 
         year = get_year(book_name)
@@ -95,14 +111,14 @@ def main():
         chapters = text_to_chapter_list(clean_book_text)
 
         for chapter in chapters:
-            #create a file for each chapter
+            # create a file for each chapter
             chap_num = chapters.index(chapter)
             chaps_path = r"C:\Users\Lenovo\PycharmProjects\NLP_project\chaps"
             chap_path = chaps_path + "\\" + book_name + " " + str(chap_num) + ".txt"
             with open(chap_path, "w", encoding="utf-8") as file:
                 file.write(chapter)
 
-# counting number of chapters
+    # counting number of chapters
     count = 0
     for file in os.listdir(chaps_path):
         if file.endswith(".txt"):
@@ -112,5 +128,5 @@ def main():
     return
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()

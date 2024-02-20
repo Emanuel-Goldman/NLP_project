@@ -1,46 +1,33 @@
+import os
 from collections import Counter
+
 import gensim
-from gensim import models
 import matplotlib.pyplot as plt
-import spacy
+import pyLDAvis.gensim
 import sklearn
+import spacy
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel
-import pyLDAvis.gensim
-import deviding_to_chaps
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error
-from tensorflow import keras
-from tensorflow.keras import layers
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from spacy.tokens import Doc
 
-    # Assuming 'df' is your DataFrame with features (X) and target (Y)
+from deviding_to_chaps import get_books_names
+import deviding_to_chaps
+
+
+# Assuming 'df' is your DataFrame with features (X) and target (Y)
 # For example, X contains features like 'feature1', 'feature2', etc., and Y contains the target variable.
 
 # Sample data creation
 
-#data = {'feature1': chap_list[0], 'target': np.random.rand(100)}
-#df = pd.DataFrame(data)
+# data = {'feature1': chap_list[0], 'target': np.random.rand(100)}
+# df = pd.DataFrame(data)
 
 # Split the data into features (X) and target (Y)
-#X = df[['feature1']]
-#Y = df['target']
+# X = df[['feature1']]
+# Y = df['target']
 
 # Split the data into training and testing sets
-#X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 #
 # # Standardize the features (important for neural networks)
 # scaler = StandardScaler()
@@ -55,7 +42,7 @@ from tensorflow.keras.layers import Dense
 # ])
 
 # Compile the model
-#model.compile(optimizer='adam', loss='mean_squared_error')
+# model.compile(optimizer='adam', loss='mean_squared_error')
 
 # Train the model
 # model.fit(X_train_scaled, Y_train, epochs=50, batch_size=16, verbose=2)
@@ -70,25 +57,31 @@ from tensorflow.keras.layers import Dense
 
 # ------------------------------- End of AI part ------------------------------
 
-
-nlp = spacy.load('en_core_web_sm')
-
-
-def most_freq_words(doc):  # we have a bug in this function - we get an empty token that we don't want.
-    costume_stop_words = [",", " ", ".", "\n", r'[\x00-\x1F]']
+def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
+    nlp = spacy.load('en_core_web_sm')
+    costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”']
     for stopword in costume_stop_words:
         lexeme = nlp.vocab[stopword]
         lexeme.is_stop = True
 
-    filtered_tokens = [token.text for token in doc if not token.is_stop]
+    filtered_tokens = [token.text for token in doc if
+                       token.text not in nlp.Defaults.stop_words and token.text not in costume_stop_words and
+                       token.text.strip()]
     word_freq = Counter(filtered_tokens)
 
     most_common_words = word_freq.most_common(10)
-    for word, freq in most_common_words:
-        print(f'{word}: {freq} times')
+    return most_common_words
 
 
-def text_to_tokens(text,doc):
+def most_freq_words_in_all_chaps(chap_list: list[str]) -> list[tuple[str, int]]:
+    chap_docs = texts_to_docs(chap_list)
+    freq_words = []
+    for chap in chap_docs:
+        freq_words.extend(most_freq_words(chap))
+    return freq_words
+
+
+def text_to_tokens(text, doc):
     tokens = [token.text for token in doc]
     return tokens
 
@@ -114,21 +107,63 @@ def text_to_clean_lemma(text):
     return lemmas
 
 
-def texts_to_docs(text_list):
-    return [nlp(text) for text in text_list]
+def texts_to_docs(chap_list: list[str]) -> list[Doc]:
+    #TODO: change to loop over all docs instead of 5
+    nlp = spacy.load('en_core_web_sm')
+    nlp.max_length = 1500000
+    docs = []
+    for i in range(5):
+        text = chap_list[i]
+        docs.append(nlp(text))
+    return docs
 
 
-def plot_average_sentence_length(doc_list):
+def plot_average_sentence_length(chap_list: list[tuple[str, str]]):
+    # TODO: change to get all chapters per year
+    all_chaps = []
+    i = 0
+    for chap, year in chap_list:
+        if i < 5:
+            all_chaps.append(chap)
+
+    docs = texts_to_docs(all_chaps)
     average_sentences = []
-
-    for doc in doc_list:
+    for doc in docs:
         average_sentences.append(average_sentence_length(doc))
 
-    plt.bar(range(1, len(doc_list) + 1), average_sentences)
+    plt.bar(range(1, len(docs) + 1), average_sentences)
     plt.xlabel('Document')
     plt.ylabel('Average Sentences')
     plt.title('Average Number of Sentences in Different Documents')
     plt.show()
+
+
+def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
+    organized_by_year = {}
+    for chap, year in chap_list:
+        organized_by_year.setdefault(year, []).append(chap)
+    return organized_by_year
+
+
+def plot_most_freq_words_by_year(chap_list: list[tuple[str, str]], chosen_year: str):
+    organized_by_year = organize_by_year(chap_list)
+    freq_words_list = []
+    for year, chapters in organized_by_year.items():
+        if year == chosen_year:
+            # x = most_freq_words_in_all_chaps(chapters)
+            # print_freq_words(x)
+            freq_words_list.extend(most_freq_words_in_all_chaps(chapters))
+
+        # Extract words and their frequencies
+        words, frequencies = zip(*freq_words_list)
+
+        # Plotting
+        plt.bar(words, frequencies)
+        plt.xlabel('Words')
+        plt.ylabel('Frequency')
+        plt.title(f'Most Frequent Words in Books ({year})')
+        plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels for better visibility
+        plt.show()
 
 
 def length_of_sentence(sentence):
@@ -136,19 +171,21 @@ def length_of_sentence(sentence):
 
 
 def average_sentence_length(doc):
-    sum = 0
-    for sentence in classifier_text_to_sentences(doc):
-        sum += length_of_sentence(sentence)
-    return sum / len(classifier_text_to_sentences(doc))
+    sum_len_of_sentences = 0
+    sentences = classifier_text_to_sentences(doc)
+    for sentence in sentences:
+        sum_len_of_sentences += length_of_sentence(sentence)
+
+    return sum_len_of_sentences / len(sentences)
 
 
-def classifier_text_to_sentences(doc):
-    # it add the /n to the sentences  - maybe we wont to fix this?
+def classifier_text_to_sentences(doc: Doc) -> list[str]:
+    # TODO: it add the /n to the sentences  - maybe we wont to fix this?
     sentences = [sentence.text for sentence in doc.sents]
     return sentences
 
 
-def topic_modeling_LDA(corpus,doc):
+def topic_modeling_LDA(doc):
     # We add some words to the stop word list
     texts, article = [], []
 
@@ -174,23 +211,63 @@ def topic_modeling_LDA(corpus,doc):
 
 
 def text_to_vec(text):
+    nlp = spacy.load('en_core_web_sm')
     doc = nlp(text)
+    return doc
 
 
-def get_max_num_of_sentences(chap_list):
+def get_max_num_of_sentences(chap_list: list[tuple[str, str]]):
+    only_chaps = []
+    for chap, year in chap_list:
+        only_chaps.append(chap)
+    docs = texts_to_docs(only_chaps)
     max_num_of_sentences = 0
-    for pair in chap_list:
-        chap = pair[0]
-        sen = classifier_text_to_sentences(nlp(chap))
+    for doc in docs:
+        sen = classifier_text_to_sentences(doc)
         max_num_of_sentences = max(max_num_of_sentences, len(sen))
     return max_num_of_sentences
 
 
+def extract_year_from_filename():
+    folder = r"C:\Users\User\PycharmProjects\NLP_project\Chaps"
+    chaps_names = get_books_names(folder)
+    years = []
+    for name in chaps_names:
+        parts = name.split('(')
+        year = parts[-1].split(')')[0]
+        years.append(year)
+    return years
+
+
+def load_txt_files(directory) -> list[tuple[str, str]]:
+    years = extract_year_from_filename()
+    file_contents = []
+    i = 0
+    for filename in os.listdir(directory):
+        filepath = os.path.join(directory, filename)
+        with open(filepath, "r", encoding="utf-8") as file:
+            chapter_text = file.read()
+            year = years[i]
+            file_contents.append((chapter_text, year))
+    return file_contents
+
+
+def print_freq_words(freq_words):
+    for word, freq in freq_words:
+        print(f'{word}: {freq} times')
+    print('\n')
+
+
 def main():
-    print(sklearn.__version__)
-    chap_list = deviding_to_chaps.get_chap_list(r"C:\Users\Lenovo\PycharmProjects\NLP_project\chaps")
-    print(chap_list)
+    #TODO: don't erase anything! you can put as comment if you don't want to run it all
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
+    chap_list = load_txt_files(CHAPS_PATH)
     print(get_max_num_of_sentences(chap_list))
+    plot_most_freq_words_by_year(chap_list, "1859")
+    plot_average_sentence_length(chap_list)
+
+    # topic_modeling_LDA(docs_list)
 
 
 if __name__ == "__main__":
