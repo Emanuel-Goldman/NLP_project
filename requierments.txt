@@ -1,0 +1,6 @@
+scikit-learn
+pandas
+gensim
+matplotlib
+pyLDAvis
+spacy
