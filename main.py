@@ -147,23 +147,18 @@ def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
 
 def plot_most_freq_words_by_year(chap_list: list[tuple[str, str]], chosen_year: str):
     organized_by_year = organize_by_year(chap_list)
-    freq_words_list = []
-    for year, chapters in organized_by_year.items():
-        if year == chosen_year:
-            # x = most_freq_words_in_all_chaps(chapters)
-            # print_freq_words(x)
-            freq_words_list.extend(most_freq_words_in_all_chaps(chapters))
+    freq_words_list = most_freq_words_in_all_chaps(organized_by_year.get(chosen_year))
 
-        # Extract words and their frequencies
-        words, frequencies = zip(*freq_words_list)
+    # Extract words and their frequencies
+    words, frequencies = zip(*freq_words_list)
 
-        # Plotting
-        plt.bar(words, frequencies)
-        plt.xlabel('Words')
-        plt.ylabel('Frequency')
-        plt.title(f'Most Frequent Words in Books ({year})')
-        plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels for better visibility
-        plt.show()
+    # Plotting
+    plt.bar(words, frequencies)
+    plt.xlabel('Words')
+    plt.ylabel('Frequency')
+    plt.title(f'Most Frequent Words in Books ({chosen_year})')
+    plt.xticks(rotation=45, ha="right")  # Rotate x-axis labels for better visibility
+    plt.show()
 
 
 def length_of_sentence(sentence):
@@ -264,7 +259,7 @@ def main():
     CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
     chap_list = load_txt_files(CHAPS_PATH)
     print(get_max_num_of_sentences(chap_list))
-    plot_most_freq_words_by_year(chap_list, "1859")
+    plot_most_freq_words_by_year(chap_list, "1843")
     plot_average_sentence_length(chap_list)
 
     # topic_modeling_LDA(docs_list)
