@@ -223,9 +223,8 @@ def get_max_num_of_sentences(chap_list: list[tuple[str, str]]):
     return max_num_of_sentences
 
 
-def extract_year_from_filename():
-    folder = r"C:\Users\User\PycharmProjects\NLP_project\Chaps"
-    chaps_names = get_books_names(folder)
+def extract_year_from_filename(directory):
+    chaps_names = get_books_names(directory)
     years = []
     for name in chaps_names:
         parts = name.split('(')
@@ -235,7 +234,7 @@ def extract_year_from_filename():
 
 
 def load_txt_files(directory) -> list[tuple[str, str]]:
-    years = extract_year_from_filename()
+    years = extract_year_from_filename(directory)
     file_contents = []
     i = 0
     for filename in os.listdir(directory):
