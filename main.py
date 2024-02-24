@@ -58,6 +58,7 @@ import deviding_to_chaps
 # ------------------------------- End of AI part ------------------------------
 
 def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
+    #TODO: maybe delete
     nlp = spacy.load('en_core_web_sm')
     costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
     for stopword in costume_stop_words:
@@ -73,12 +74,34 @@ def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
     return most_common_words
 
 
-def most_freq_words_in_all_chaps(chap_list: list[str]) -> list[tuple[str, int]]:
-    chap_docs = texts_to_docs(chap_list)
-    freq_words = []
-    for chap in chap_docs:
-        freq_words.extend(most_freq_words(chap))
-    return freq_words
+def most_freq_words_in_all_chaps(docs: list[Doc]) -> list[tuple[str, int]]:
+    # Create a set of custom stop words
+    costume_stop_words = {",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?", "The",
+                          "It", "‘", "’"}
+
+    # Initialize a Counter to store word frequencies
+    word_freq = Counter()
+
+    # Loop over each document in the list
+    for doc in docs:
+        # Update the set of stop words for each document
+        nlp = spacy.load('en_core_web_sm')
+        for stopword in costume_stop_words:
+            lexeme = nlp.vocab[stopword]
+            lexeme.is_stop = True
+
+        # Filter tokens based on stop words and additional criteria
+        filtered_tokens = [token.text for token in doc if
+                           token.text not in nlp.Defaults.stop_words and token.text not in costume_stop_words and
+                           token.text.strip()]
+
+        # Update the overall word frequency counter
+        word_freq.update(filtered_tokens)
+
+    # Get the 10 most common words
+    most_common_words = word_freq.most_common(10)
+    print(most_common_words)
+    return most_common_words
 
 
 def text_to_tokens(text, doc):
@@ -161,12 +184,10 @@ def text_to_clean_lemma(text):
 
 
 def texts_to_docs(chap_list: list[str]) -> list[Doc]:
-    # TODO: change to loop over all docs instead of 5
     nlp = spacy.load('en_core_web_sm')
     nlp.max_length = 1500000
     docs = []
-    for i in range(5):
-        text = chap_list[i]
+    for text in chap_list:
         docs.append(nlp(text))
     return docs
 
@@ -176,7 +197,7 @@ def plot_data_per_year(chap_list: list[tuple[str, str]], chosen_year: str):
     chaps_in_year = organized_by_year.get(chosen_year)
     docs = texts_to_docs(chaps_in_year)
 
-    plot_most_freq_words_by_year(chaps_in_year, chosen_year)
+    plot_most_freq_words_by_year(docs, chosen_year)
     plot_average_sentence_length(docs)
     plot_lemmas(docs)
     plot_pos(docs)
@@ -201,8 +222,8 @@ def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
     return organized_by_year
 
 
-def plot_most_freq_words_by_year(chaps_in_year: list[str], chosen_year: str):
-    freq_words_list = most_freq_words_in_all_chaps(chaps_in_year)
+def plot_most_freq_words_by_year(docs: list[Doc], chosen_year: str):
+    freq_words_list = most_freq_words_in_all_chaps(docs)
     # Extract words and their frequencies
     words, frequencies = zip(*freq_words_list)
 
@@ -316,7 +337,7 @@ def main():
     # check = [("hadar hadar hadar hadar", "1843"), ("go to eat", "1843"), ("so pretty", "1843"), ("nice day", "1843"),
     #          ("great!", "1843")]
     # plot_data_per_year(check, "1843")
-    plot_data_per_year(chap_list, "1843")
+    plot_data_per_year(chap_list, "1841")
 
     # topic_modeling_LDA(docs_list)
 
