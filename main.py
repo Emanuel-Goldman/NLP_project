@@ -4,14 +4,12 @@ from collections import Counter
 import gensim
 import matplotlib.pyplot as plt
 import pyLDAvis.gensim
-import sklearn
 import spacy
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel
 from spacy.tokens import Doc
 
 from deviding_to_chaps import get_books_names
-import deviding_to_chaps
 
 
 # Assuming 'df' is your DataFrame with features (X) and target (Y)
@@ -58,8 +56,7 @@ import deviding_to_chaps
 # ------------------------------- End of AI part ------------------------------
 
 def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
-    #TODO: maybe delete
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load('en_core_web_lg')
     costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
     for stopword in costume_stop_words:
         lexeme = nlp.vocab[stopword]
@@ -176,15 +173,15 @@ def text_to_lemma_pos(doc: Doc) -> list[tuple[str, str]]:
 
 
 def text_to_clean_lemma(text):
-    # TODO: maybe delete?
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_lg")
     tokens = nlp(text)
     lemmas = [token.lemma_ for token in tokens]
     return lemmas
 
 
 def texts_to_docs(chap_list: list[str]) -> list[Doc]:
-    nlp = spacy.load('en_core_web_sm')
+    #TODO: change to loop over all docs instead of 5
+    nlp = spacy.load('en_core_web_lg')
     nlp.max_length = 1500000
     docs = []
     for text in chap_list:
@@ -242,16 +239,15 @@ def length_of_sentence(sentence):
 
 def average_sentence_length(doc):
     sum_len_of_sentences = 0
-    sentences = classifier_text_to_sentences(doc)
+    sentences = tokenize_text_to_sentences(doc)
     for sentence in sentences:
         sum_len_of_sentences += length_of_sentence(sentence)
 
     return sum_len_of_sentences / len(sentences)
 
 
-def classifier_text_to_sentences(doc: Doc) -> list[str]:
-    # TODO: it add the /n to the sentences  - maybe we wont to fix this?
-    sentences = [sentence.text for sentence in doc.sents]
+def tokenize_text_to_sentences(doc: Doc) -> list[str]:
+    sentences = [sentence.text.replace('\n', ' ').strip() for sentence in doc.sents]
     return sentences
 
 
@@ -281,7 +277,7 @@ def topic_modeling_LDA(doc):
 
 
 def text_to_vec(text):
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load('en_core_web_lg')
     doc = nlp(text)
     return doc
 
@@ -293,7 +289,7 @@ def get_max_num_of_sentences(chap_list: list[tuple[str, str]]):
     docs = texts_to_docs(only_chaps)
     max_num_of_sentences = 0
     for doc in docs:
-        sen = classifier_text_to_sentences(doc)
+        sen = tokenize_text_to_sentences(doc)
         max_num_of_sentences = max(max_num_of_sentences, len(sen))
     return max_num_of_sentences
 
