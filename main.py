@@ -59,7 +59,7 @@ import deviding_to_chaps
 
 def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
     nlp = spacy.load('en_core_web_sm')
-    costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”']
+    costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
     for stopword in costume_stop_words:
         lexeme = nlp.vocab[stopword]
         lexeme.is_stop = True
@@ -95,12 +95,65 @@ def classifier_part_of_speech(text):
     return
 
 
-def text_to_lemma_pos(doc):
+def plot_pos(docs: list[Doc]):
+    pos = []
+    for doc in docs:
+        pos.extend(text_to_lemma_pos(doc))
+
+    # print(pos)
+    pos_frequency = count_pos(pos)
+    top_pos_frequency = dict(pos_frequency)
+    pos, frequencies = zip(*top_pos_frequency.items())
+
+    plt.bar(pos, frequencies)
+    plt.xlabel('Pos')
+    plt.ylabel('Frequency')
+    plt.title('Pos Frequency')
+    plt.xticks(rotation=45, ha="right")
+    plt.show()
+
+
+def plot_lemmas(docs: list[Doc]):
+    lemmas = []
+    for doc in docs:
+        lemmas.extend(text_to_lemma_pos(doc))
+
+    nlp = spacy.load("en_core_web_sm")
+    stop_words = set(nlp.Defaults.stop_words)
+    custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_"]
+    stop_words.update(custom_stop_words)
+    lemmas = [(lemma, pos) for lemma, pos in lemmas if lemma.lower() not in stop_words]
+
+    # print(lemmas)
+    lemmas_frequency = count_lemmas(lemmas)
+    top_lemmas_frequency = dict(lemmas_frequency)
+    lemmas, frequencies = zip(*top_lemmas_frequency.items())
+
+    plt.bar(lemmas, frequencies)
+    plt.xlabel('Lemmas')
+    plt.ylabel('Frequency')
+    plt.title('Lemmas Frequency')
+    plt.xticks(rotation=45, ha="right")
+    plt.show()
+
+
+def count_lemmas(lemma_pos_list: list[tuple[str, str]], top_n=10) -> list[tuple[str, int]]:
+    lemmas_counter = Counter(lemma for lemma, pos in lemma_pos_list)
+    return lemmas_counter.most_common(top_n)
+
+
+def count_pos(lemma_pos_list: list[tuple[str, str]], top_n=10) -> list[tuple[str, int]]:
+    pos_counter = Counter(pos for lemma, pos in lemma_pos_list)
+    return pos_counter.most_common(top_n)
+
+
+def text_to_lemma_pos(doc: Doc) -> list[tuple[str, str]]:
     lemmas_and_pos = [(token.lemma_, token.pos_) for token in doc]
     return lemmas_and_pos
 
 
 def text_to_clean_lemma(text):
+    # TODO: maybe delete?
     nlp = spacy.load("en_core_web_sm")
     tokens = nlp(text)
     lemmas = [token.lemma_ for token in tokens]
@@ -108,7 +161,7 @@ def text_to_clean_lemma(text):
 
 
 def texts_to_docs(chap_list: list[str]) -> list[Doc]:
-    #TODO: change to loop over all docs instead of 5
+    # TODO: change to loop over all docs instead of 5
     nlp = spacy.load('en_core_web_sm')
     nlp.max_length = 1500000
     docs = []
@@ -118,15 +171,18 @@ def texts_to_docs(chap_list: list[str]) -> list[Doc]:
     return docs
 
 
-def plot_average_sentence_length(chap_list: list[tuple[str, str]]):
-    # TODO: change to get all chapters per year
-    all_chaps = []
-    i = 0
-    for chap, year in chap_list:
-        if i < 5:
-            all_chaps.append(chap)
+def plot_data_per_year(chap_list: list[tuple[str, str]], chosen_year: str):
+    organized_by_year = organize_by_year(chap_list)
+    chaps_in_year = organized_by_year.get(chosen_year)
+    docs = texts_to_docs(chaps_in_year)
 
-    docs = texts_to_docs(all_chaps)
+    plot_most_freq_words_by_year(chaps_in_year, chosen_year)
+    plot_average_sentence_length(docs)
+    plot_lemmas(docs)
+    plot_pos(docs)
+
+
+def plot_average_sentence_length(docs: list[Doc]):
     average_sentences = []
     for doc in docs:
         average_sentences.append(average_sentence_length(doc))
@@ -145,10 +201,8 @@ def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
     return organized_by_year
 
 
-def plot_most_freq_words_by_year(chap_list: list[tuple[str, str]], chosen_year: str):
-    organized_by_year = organize_by_year(chap_list)
-    freq_words_list = most_freq_words_in_all_chaps(organized_by_year.get(chosen_year))
-
+def plot_most_freq_words_by_year(chaps_in_year: list[str], chosen_year: str):
+    freq_words_list = most_freq_words_in_all_chaps(chaps_in_year)
     # Extract words and their frequencies
     words, frequencies = zip(*freq_words_list)
 
@@ -253,13 +307,15 @@ def print_freq_words(freq_words):
 
 
 def main():
-    #TODO: don't erase anything! you can put as comment if you don't want to run it all
+    # TODO: don't erase anything! you can put as comment if you don't want to run it all
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
     chap_list = load_txt_files(CHAPS_PATH)
-    print(get_max_num_of_sentences(chap_list))
-    plot_most_freq_words_by_year(chap_list, "1843")
-    plot_average_sentence_length(chap_list)
+    # print(get_max_num_of_sentences(chap_list))
+    # check = [("hadar hadar hadar hadar", "1843"), ("go to eat", "1843"), ("so pretty", "1843"), ("nice day", "1843"),
+    #          ("great!", "1843")]
+    # plot_data_per_year(check, "1843")
+    plot_data_per_year(chap_list, "1843")
 
     # topic_modeling_LDA(docs_list)
 
