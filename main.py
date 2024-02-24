@@ -297,6 +297,7 @@ def load_txt_files(directory) -> list[tuple[str, str]]:
             chapter_text = file.read()
             year = years[i]
             file_contents.append((chapter_text, year))
+        i += 1
     return file_contents
 
 
