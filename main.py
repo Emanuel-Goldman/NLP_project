@@ -180,7 +180,6 @@ def text_to_clean_lemma(text):
 
 
 def texts_to_docs(chap_list: list[str]) -> list[Doc]:
-    #TODO: change to loop over all docs instead of 5
     nlp = spacy.load('en_core_web_lg')
     nlp.max_length = 1500000
     docs = []
@@ -199,7 +198,6 @@ def plot_data_per_year(chap_list: list[tuple[str, str]], chosen_year: str):
     plot_lemmas(docs)
     plot_pos(docs)
 
-
 def plot_average_sentence_length(docs: list[Doc]):
     average_sentences = []
     for doc in docs:
@@ -217,6 +215,31 @@ def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
     for chap, year in chap_list:
         organized_by_year.setdefault(year, []).append(chap)
     return organized_by_year
+
+
+def organize_by_period_of_time(organized_by_year: dict[str, list[str]]) -> dict[str, list[str]]:
+    periods = {"period1": [], "period2": [], "period3": []}
+    for year, chaps in organized_by_year.items():
+        if int(year) >= 1837 & int(year) <= 1841:
+            periods["period1"].extend(chaps)
+        elif int(year) >= 1843 & int(year) <= 1854:
+            periods["period2"].extend(chaps)
+        else:
+            periods["period3"].extend(chaps)
+
+    return periods
+
+
+def plot_data_per_period(chap_list: list[tuple[str, str]], chosen_period: str):
+    organized_by_year = organize_by_year(chap_list)
+    organize_by_period = organize_by_period_of_time(organized_by_year)
+    chaps_in_period = organize_by_period.get(chosen_period)
+    docs = texts_to_docs(chaps_in_period)
+
+    plot_most_freq_words_by_year(docs, chosen_period)
+    plot_average_sentence_length(docs)
+    plot_lemmas(docs)
+    plot_pos(docs)
 
 
 def plot_most_freq_words_by_year(docs: list[Doc], chosen_year: str):
@@ -249,7 +272,6 @@ def average_sentence_length(doc):
 def tokenize_text_to_sentences(doc: Doc) -> list[str]:
     sentences = [sentence.text.replace('\n', ' ').strip() for sentence in doc.sents]
     return sentences
-
 
 def topic_modeling_LDA(doc):
     # We add some words to the stop word list
@@ -330,10 +352,12 @@ def main():
     CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
     chap_list = load_txt_files(CHAPS_PATH)
     # print(get_max_num_of_sentences(chap_list))
-    # check = [("hadar hadar hadar hadar", "1843"), ("go to eat", "1843"), ("so pretty", "1843"), ("nice day", "1843"),
+    # check = [("hadar hadar hadar hadar", "1843"), ("go to eat", "1843"), ("so pretty", "1843"),
+    #          ("have a nice day Hadar", "1837"),
     #          ("great!", "1843")]
-    # plot_data_per_year(check, "1843")
-    plot_data_per_year(chap_list, "1841")
+
+    # plot_data_per_period(chap_list, "period1")
+    plot_data_per_year(chap_list, "1843")
 
     # topic_modeling_LDA(docs_list)
 
