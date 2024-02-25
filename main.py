@@ -12,51 +12,7 @@ from spacy.tokens import Doc
 from deviding_to_chaps import get_books_names
 
 
-# Assuming 'df' is your DataFrame with features (X) and target (Y)
-# For example, X contains features like 'feature1', 'feature2', etc., and Y contains the target variable.
-
-# Sample data creation
-
-# data = {'feature1': chap_list[0], 'target': np.random.rand(100)}
-# df = pd.DataFrame(data)
-
-# Split the data into features (X) and target (Y)
-# X = df[['feature1']]
-# Y = df['target']
-
-# Split the data into training and testing sets
-# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-#
-# # Standardize the features (important for neural networks)
-# scaler = StandardScaler()
-# X_train_scaled = scaler.fit_transform(X_train)
-# X_test_scaled = scaler.transform(X_test)
-
-# Build a simple neural network model
-# model = keras.Sequential([
-#     layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
-#     layers.Dense(32, activation='relu'),
-#     layers.Dense(1)  # Output layer with 1 neuron (regression)
-# ])
-
-# Compile the model
-# model.compile(optimizer='adam', loss='mean_squared_error')
-
-# Train the model
-# model.fit(X_train_scaled, Y_train, epochs=50, batch_size=16, verbose=2)
-#
-# # Make predictions on the test set
-# predictions = model.predict(X_test_scaled)
-#
-# # Evaluate the model
-# mse = mean_squared_error(Y_test, predictions)
-# print(f"Mean Squared Error on Test Set: {mse}")
-
-
-# ------------------------------- End of AI part ------------------------------
-
-def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
-    nlp = spacy.load('en_core_web_lg')
+def most_freq_words(nlp, doc: Doc) -> list[tuple[str, int]]:
     costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
     for stopword in costume_stop_words:
         lexeme = nlp.vocab[stopword]
@@ -71,7 +27,7 @@ def most_freq_words(doc: Doc) -> list[tuple[str, int]]:
     return most_common_words
 
 
-def most_freq_words_in_all_chaps(docs: list[Doc]) -> list[tuple[str, int]]:
+def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
     # Create a set of custom stop words
     costume_stop_words = {",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?", "The",
                           "It", "‘", "’"}
@@ -82,7 +38,6 @@ def most_freq_words_in_all_chaps(docs: list[Doc]) -> list[tuple[str, int]]:
     # Loop over each document in the list
     for doc in docs:
         # Update the set of stop words for each document
-        nlp = spacy.load('en_core_web_sm')
         for stopword in costume_stop_words:
             lexeme = nlp.vocab[stopword]
             lexeme.is_stop = True
@@ -133,12 +88,11 @@ def plot_pos(docs: list[Doc]):
     plt.show()
 
 
-def plot_lemmas(docs: list[Doc]):
+def plot_lemmas(nlp, docs: list[Doc]):
     lemmas = []
     for doc in docs:
         lemmas.extend(text_to_lemma_pos(doc))
 
-    nlp = spacy.load("en_core_web_sm")
     stop_words = set(nlp.Defaults.stop_words)
     custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_"]
     stop_words.update(custom_stop_words)
@@ -172,15 +126,13 @@ def text_to_lemma_pos(doc: Doc) -> list[tuple[str, str]]:
     return lemmas_and_pos
 
 
-def text_to_clean_lemma(text):
-    nlp = spacy.load("en_core_web_lg")
+def text_to_clean_lemma(nlp, text):
     tokens = nlp(text)
     lemmas = [token.lemma_ for token in tokens]
     return lemmas
 
 
-def texts_to_docs(chap_list: list[str]) -> list[Doc]:
-    nlp = spacy.load('en_core_web_lg')
+def texts_to_docs(nlp, chap_list: list[str]) -> list[Doc]:
     nlp.max_length = 1500000
     docs = []
     for text in chap_list:
@@ -188,20 +140,20 @@ def texts_to_docs(chap_list: list[str]) -> list[Doc]:
     return docs
 
 
-def plot_data_per_year(chap_list: list[tuple[str, str]], chosen_year: str):
+def plot_data_per_year(nlp, chap_list: list[tuple[str, str]], chosen_year: str):
     organized_by_year = organize_by_year(chap_list)
     chaps_in_year = organized_by_year.get(chosen_year)
-    docs = texts_to_docs(chaps_in_year)
+    docs = texts_to_docs(nlp, chaps_in_year)
 
-    plot_most_freq_words_by_year(docs, chosen_year)
-    plot_average_sentence_length(docs)
-    plot_lemmas(docs)
+    plot_most_freq_words_by_year(nlp, docs, chosen_year)
+    plot_average_sentence_length(nlp, docs)
+    plot_lemmas(nlp, docs)
     plot_pos(docs)
 
-def plot_average_sentence_length(docs: list[Doc]):
+def plot_average_sentence_length(nlp, docs: list[Doc]):
     average_sentences = []
     for doc in docs:
-        average_sentences.append(average_sentence_length(doc))
+        average_sentences.append(average_sentence_length(nlp, doc))
 
     plt.bar(range(1, len(docs) + 1), average_sentences)
     plt.xlabel('Document')
@@ -230,20 +182,20 @@ def organize_by_period_of_time(organized_by_year: dict[str, list[str]]) -> dict[
     return periods
 
 
-def plot_data_per_period(chap_list: list[tuple[str, str]], chosen_period: str):
+def plot_data_per_period(nlp, chap_list: list[tuple[str, str]], chosen_period: str):
     organized_by_year = organize_by_year(chap_list)
     organize_by_period = organize_by_period_of_time(organized_by_year)
     chaps_in_period = organize_by_period.get(chosen_period)
-    docs = texts_to_docs(chaps_in_period)
+    docs = texts_to_docs(nlp, chaps_in_period)
 
-    plot_most_freq_words_by_year(docs, chosen_period)
-    plot_average_sentence_length(docs)
-    plot_lemmas(docs)
+    plot_most_freq_words_by_year(nlp, docs, chosen_period)
+    plot_average_sentence_length(nlp, docs)
+    plot_lemmas(nlp, docs)
     plot_pos(docs)
 
 
-def plot_most_freq_words_by_year(docs: list[Doc], chosen_year: str):
-    freq_words_list = most_freq_words_in_all_chaps(docs)
+def plot_most_freq_words_by_year(nlp, docs: list[Doc], chosen_year: str):
+    freq_words_list = most_freq_words_in_all_chaps(nlp, docs)
     # Extract words and their frequencies
     words, frequencies = zip(*freq_words_list)
 
@@ -256,19 +208,21 @@ def plot_most_freq_words_by_year(docs: list[Doc], chosen_year: str):
     plt.show()
 
 
-def length_of_sentence(sentence):
-    return len(sentence.split())
+def length_of_sentence(nlp, sentence):
+    doc = nlp(sentence)
+    return sum(1 for token in doc if not token.is_punct and not token.is_space)
 
 
-def average_sentence_length(doc):
+def average_sentence_length(nlp, doc):
     sum_len_of_sentences = 0
     sentences = tokenize_text_to_sentences(doc)
     for sentence in sentences:
-        sum_len_of_sentences += length_of_sentence(sentence)
+        sum_len_of_sentences += length_of_sentence(nlp, sentence)
 
     return sum_len_of_sentences / len(sentences)
 
 
+#returns an array - not a doc object
 def tokenize_text_to_sentences(doc: Doc) -> list[str]:
     sentences = [sentence.text.replace('\n', ' ').strip() for sentence in doc.sents]
     return sentences
@@ -298,17 +252,16 @@ def topic_modeling_LDA(doc):
     pyLDAvis.save_html(vis_data, 'lda_visualization.html')
 
 
-def text_to_vec(text):
-    nlp = spacy.load('en_core_web_lg')
+def text_to_vec(nlp, text):
     doc = nlp(text)
     return doc
 
 
-def get_max_num_of_sentences(chap_list: list[tuple[str, str]]):
+def get_max_num_of_sentences(nlp, chap_list: list[tuple[str, str]]):
     only_chaps = []
     for chap, year in chap_list:
         only_chaps.append(chap)
-    docs = texts_to_docs(only_chaps)
+    docs = texts_to_docs(nlp, only_chaps)
     max_num_of_sentences = 0
     for doc in docs:
         sen = tokenize_text_to_sentences(doc)
@@ -347,17 +300,21 @@ def print_freq_words(freq_words):
 
 
 def main():
+    # loading spacy pipline
+    nlp = spacy.load('en_core_web_lg')
+    nlp.add_pipe('set_custom_boundaries', before="parser")
+
     # TODO: don't erase anything! you can put as comment if you don't want to run it all
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
     chap_list = load_txt_files(CHAPS_PATH)
-    # print(get_max_num_of_sentences(chap_list))
+    # print(get_max_num_of_sentences(nlp, chap_list))
     # check = [("hadar hadar hadar hadar", "1843"), ("go to eat", "1843"), ("so pretty", "1843"),
     #          ("have a nice day Hadar", "1837"),
     #          ("great!", "1843")]
 
-    # plot_data_per_period(chap_list, "period1")
-    plot_data_per_year(chap_list, "1843")
+    # plot_data_per_period(nlp, chap_list, "period1")
+    plot_data_per_year(nlp, chap_list, "1843")
 
     # topic_modeling_LDA(docs_list)
 
