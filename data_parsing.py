@@ -6,7 +6,9 @@ import json
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+from sklearn import preprocessing
 
 
 #adding sentence tokenization rule for apostrophes for spacy
@@ -39,7 +41,7 @@ def save_chaps_tokenized_to_sents(read_path, write_path, num_of_books, nlp, book
 
 
 #create a vector of length of sentences for a single chapter
-def chap_length_of_sentences_vector(chap_sentences, nlp):
+def chap_float_length_of_sentences_vector(chap_sentences, nlp):
 
     length_of_sentences_vector = []
 
@@ -52,7 +54,7 @@ def chap_length_of_sentences_vector(chap_sentences, nlp):
 
 
 #create a matrix of lengths of sentences of all chapters and save as a json file
-def chaps_length_of_sentences_matrix(tokenized_chaps_path, output_path, nlp):
+def chaps_float_length_of_sentences_matrix(tokenized_chaps_path, output_path, nlp):
 
     length_of_sentences_matrix = []
     files = sorted(os.listdir(tokenized_chaps_path))
@@ -62,14 +64,14 @@ def chaps_length_of_sentences_matrix(tokenized_chaps_path, output_path, nlp):
         with open(filepath, "r") as json_file:
             chap_sentences = json.load(json_file)
 
-        length_of_sentences_matrix.append(chap_length_of_sentences_vector(chap_sentences, nlp))
+        length_of_sentences_matrix.append(chap_float_length_of_sentences_vector(chap_sentences, nlp))
 
     with open(output_path, "w") as json_file:
         json.dump(length_of_sentences_matrix, json_file)
 
 
 #pad the matrix of lengths of sentences with zeros to the longest chapter size
-def padding_length_of_sentences_matrix(read_path, output_path):
+def padding_float_length_of_sentences_matrix(read_path, output_path):
 
     with open(read_path, "r") as json_file:
         length_of_sentences_matrix = json.load(json_file)
@@ -110,6 +112,17 @@ def label_chaps_to_periods(tokenized_chaps_path, output_path):
         json.dump(labels, json_file)
 
 
+def chaps_int_length_of_sentences_matrix(read_path, write_path):
+
+    with open(read_path, "r") as json_file:
+        float_length_of_sentences_matrix = json.load(json_file)
+
+    int_length_of_sentences_matrix = [[int(value) for value in row] for row in float_length_of_sentences_matrix]
+
+    with open(write_path, "w") as json_file:
+        json.dump(int_length_of_sentences_matrix, json_file)
+
+
 #classifying the periods of the chapters using mlp classifier
 def mlp_classifier_length_of_sentences(X, y):
 
@@ -121,7 +134,23 @@ def mlp_classifier_length_of_sentences(X, y):
     y_predict = clf.predict(X_test)
     accuracy = accuracy_score(y_test, y_predict)
 
-    return accuracy
+    return accuracy #45%
+
+
+def logistic_regression_length_of_sentences(X, y):
+
+    scaler = preprocessing.StandardScaler()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    clf = LogisticRegression(random_state=42, max_iter=10000)
+
+    clf.fit(X_train_scaled, y_train)
+
+    y_predict = clf.predict(X_test_scaled)
+    accuracy = accuracy_score(y_test, y_predict)
+    print(accuracy) #46%
 
 
 def main():
@@ -137,14 +166,13 @@ def main():
 
     #AYELET- running AI
     path = os.path.join(ROOT_DIR, 'Input_for_AI')
-    path2 = os.path.join(path, "label_chaps_to_periods.json")
-    path3 = os.path.join(path, "padded_length_of_sentences_matrix.json")
-    with open(path3, "r") as json_file:
-        padded_length_of_sentences_matrix = json.load(json_file)
+    path2 = os.path.join(path, "padded_int_length_of_sentences_matrix.json")
+    path3 = os.path.join(path, "label_chaps_to_periods.json")
     with open(path2, "r") as json_file:
+        padded_int_length_of_sentences_matrix = json.load(json_file)
+    with open(path3, "r") as json_file:
         label_chaps_to_periods = json.load(json_file)
-    print(mlp_classifier_length_of_sentences(padded_length_of_sentences_matrix, label_chaps_to_periods))
-
+    logistic_regression_length_of_sentences(padded_int_length_of_sentences_matrix, label_chaps_to_periods)
 
 if __name__ == "__main__":
     main()
