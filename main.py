@@ -1,6 +1,7 @@
 import os
 from collections import Counter
 
+import json
 import gensim
 import matplotlib.pyplot as plt
 import pyLDAvis.gensim
@@ -8,7 +9,7 @@ import spacy
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel
 from spacy.tokens import Doc
-
+from spacy.language import Language
 from deviding_to_chaps import get_books_names
 
 
@@ -18,9 +19,10 @@ def most_freq_words(nlp, doc: Doc) -> list[tuple[str, int]]:
         lexeme = nlp.vocab[stopword]
         lexeme.is_stop = True
 
-    filtered_tokens = [token.text for token in doc if
-                       token.text not in nlp.Defaults.stop_words and token.text not in costume_stop_words and
-                       token.text.strip()]
+    filtered_tokens = [token.text.lower() for token in doc if
+                       token.text.lower() not in nlp.Defaults.stop_words and token.text.lower() not in
+                       costume_stop_words and token.text.lower().strip()]
+    print(filtered_tokens)
     word_freq = Counter(filtered_tokens)
 
     most_common_words = word_freq.most_common(10)
@@ -43,16 +45,16 @@ def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
             lexeme.is_stop = True
 
         # Filter tokens based on stop words and additional criteria
-        filtered_tokens = [token.text for token in doc if
-                           token.text not in nlp.Defaults.stop_words and token.text not in costume_stop_words and
-                           token.text.strip()]
+        filtered_tokens = [token.text.lower() for token in doc if
+                           token.text.lower() not in nlp.Defaults.stop_words and token.text.lower() not in
+                           costume_stop_words and token.text.strip()]
 
         # Update the overall word frequency counter
         word_freq.update(filtered_tokens)
 
     # Get the 10 most common words
     most_common_words = word_freq.most_common(10)
-    print(most_common_words)
+    # print(most_common_words)
     return most_common_words
 
 
@@ -94,7 +96,7 @@ def plot_lemmas(nlp, docs: list[Doc]):
         lemmas.extend(text_to_lemma_pos(doc))
 
     stop_words = set(nlp.Defaults.stop_words)
-    custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_"]
+    custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
     stop_words.update(custom_stop_words)
     lemmas = [(lemma, pos) for lemma, pos in lemmas if lemma.lower() not in stop_words]
 
@@ -122,7 +124,7 @@ def count_pos(lemma_pos_list: list[tuple[str, str]], top_n=10) -> list[tuple[str
 
 
 def text_to_lemma_pos(doc: Doc) -> list[tuple[str, str]]:
-    lemmas_and_pos = [(token.lemma_, token.pos_) for token in doc]
+    lemmas_and_pos = [(token.lemma_.lower(), token.pos_) for token in doc]
     return lemmas_and_pos
 
 
@@ -156,7 +158,7 @@ def plot_average_sentence_length(nlp, docs: list[Doc]):
     for doc in docs:
         average_sentences.append(average_sentence_length(nlp, doc))
 
-    plt.bar(range(1, len(docs) + 1), average_sentences)
+    plt.scatter(range(1, len(docs) + 1), average_sentences)
     plt.xlabel('Document')
     plt.ylabel('Average Sentences')
     plt.title('Average Number of Sentences in Different Documents')
@@ -164,9 +166,14 @@ def plot_average_sentence_length(nlp, docs: list[Doc]):
 
 
 def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
+    #TODO:check if works
     organized_by_year = {}
     for chap, year in chap_list:
         organized_by_year.setdefault(year, []).append(chap)
+
+        # filename = f"chaps_in_{year}.json"
+        # with open(filename, 'w') as json_file:
+        #     json.dump(organized_by_year[year], json_file)
     return organized_by_year
 
 
@@ -300,23 +307,41 @@ def print_freq_words(freq_words):
         print(f'{word}: {freq} times')
     print('\n')
 
+@Language.component('set_custom_boundaries')
+def set_custom_boundaries(doc):
+    predecessor_token = doc[0]
+    for token in doc[1:-1]:
+        if token.text == "'" and predecessor_token.text == ".":
+            doc[token.i + 1].is_sent_start = False
+        predecessor_token = token
+    return doc
 
 def main():
     # loading spacy pipline
     nlp = spacy.load('en_core_web_lg')
-    nlp.add_pipe('set_custom_boundaries', before="parser")
+    nlp.add_pipe("set_custom_boundaries", before="parser")
 
     # TODO: don't erase anything! you can put as comment if you don't want to run it all
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
     chap_list = load_txt_files(CHAPS_PATH)
     # print(get_max_num_of_sentences(nlp, chap_list))
-    # check = [("hadar hadar hadar hadar", "1843"), ("go to eat", "1843"), ("so pretty", "1843"),
+
+    # check = [("hadar hadar hadar Hadar lets see if its work, i have a dog and a cat, hadar.", "1843"), ("go to eat", "1843"), ("so pretty", "1843"),
     #          ("have a nice day Hadar", "1837"),
     #          ("great!", "1843")]
+    # text =[text for text,year in check]
+    # docs = texts_to_docs(nlp, text)
+    # print(most_freq_words(nlp, docs[0]))
+    # plot_data_per_year(nlp, check,"1843")
 
     # plot_data_per_period(nlp, chap_list, "period1")
-    plot_data_per_year(nlp, chap_list, "1843")
+    plot_data_per_year(nlp, chap_list, "1859")
+
+    # organized_by_year = organize_by_year(chap_list)
+    # chaps_in_year = organized_by_year.get("1843")
+    # docs = texts_to_docs(nlp, chaps_in_year)
+    # print(most_freq_words(nlp, docs[0]))
 
     # topic_modeling_LDA(docs_list)
 
