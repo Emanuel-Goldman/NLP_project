@@ -9,6 +9,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing
+from sklearn import tree
 
 
 #adding sentence tokenization rule for apostrophes for spacy
@@ -123,21 +124,68 @@ def chaps_int_length_of_sentences_matrix(read_path, write_path):
         json.dump(int_length_of_sentences_matrix, json_file)
 
 
-#classifying the periods of the chapters using mlp classifier
-def mlp_classifier_length_of_sentences(X, y):
+def chap_pos_percentage(chap_sentences, nlp, pos):
 
+    num_of_pos = 0
+    num_of_words = 0
+
+    for sentence in chap_sentences:
+        doc = nlp(sentence)
+        for token in doc:
+            if token.pos_ == pos:
+                num_of_pos += 1
+            if not token.is_punct and not token.is_space:
+                num_of_words += 1
+
+    return (num_of_pos / num_of_words)
+
+
+def chap_pos_percentage_vector(chap_sentences, nlp):
+
+    pos_percentege = []
+
+    pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "VERB"))
+    pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "ADJ"))
+    pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "ADV"))
+    pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "INTJ"))
+
+    return pos_percentege
+
+
+def chap_punctuation_percentage(chap_sentences, nlp):
+
+    num_of_punctuation = 0
+    num_of_words = 0
+
+    for sentence in chap_sentences:
+        doc = nlp(sentence)
+        for token in doc:
+            if token.is_punct and token.text != ".":
+                num_of_punctuation += 1
+            if not token.is_punct and not token.is_space:
+                num_of_words += 1
+
+    return (num_of_punctuation / num_of_words)
+
+
+def mlp_classifier(X, y):
+
+    scaler = preprocessing.StandardScaler()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
     clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=42)
 
-    clf.fit(X_train, y_train)
+    clf.fit(X_train_scaled, y_train)
 
-    y_predict = clf.predict(X_test)
+    y_predict = clf.predict(X_test_scaled)
     accuracy = accuracy_score(y_test, y_predict)
 
     return accuracy #45%
 
 
-def logistic_regression_length_of_sentences(X, y):
+def logistic_regression(X, y):
 
     scaler = preprocessing.StandardScaler()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
@@ -153,6 +201,22 @@ def logistic_regression_length_of_sentences(X, y):
     print(accuracy) #46%
 
 
+def decision_tree(X, y):
+
+    scaler = preprocessing.StandardScaler()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    clf = tree.DecisionTreeClassifier(random_state=42)
+
+    clf.fit(X_train_scaled, y_train)
+
+    y_predict = clf.predict(X_test_scaled)
+    accuracy = accuracy_score(y_test, y_predict)
+    print(accuracy)
+
+
 def main():
 
     #loading spacy pipline
@@ -163,7 +227,13 @@ def main():
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     chaps_path = os.path.join(ROOT_DIR, 'chaps')
     tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
+    chap1 = os.path.join(tokenized_chaps_path, "A Tale of Two Cities(1859) 4.json")
 
+    with open(chap1, "r") as json_file:
+        chap = json.load(json_file)
+    print(chap_pos_percentage_vector(chap, nlp))
+
+    '''
     #AYELET- running AI
     path = os.path.join(ROOT_DIR, 'Input_for_AI')
     path2 = os.path.join(path, "padded_int_length_of_sentences_matrix.json")
@@ -172,7 +242,9 @@ def main():
         padded_int_length_of_sentences_matrix = json.load(json_file)
     with open(path3, "r") as json_file:
         label_chaps_to_periods = json.load(json_file)
-    logistic_regression_length_of_sentences(padded_int_length_of_sentences_matrix, label_chaps_to_periods)
+    logistic_regression(padded_int_length_of_sentences_matrix, label_chaps_to_periods)
+    '''
+
 
 if __name__ == "__main__":
     main()

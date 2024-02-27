@@ -150,6 +150,7 @@ def plot_data_per_year(nlp, chap_list: list[tuple[str, str]], chosen_year: str):
     plot_lemmas(nlp, docs)
     plot_pos(docs)
 
+
 def plot_average_sentence_length(nlp, docs: list[Doc]):
     average_sentences = []
     for doc in docs:
@@ -226,6 +227,7 @@ def average_sentence_length(nlp, doc):
 def tokenize_text_to_sentences(doc: Doc) -> list[str]:
     sentences = [sentence.text.replace('\n', ' ').strip() for sentence in doc.sents]
     return sentences
+
 
 def topic_modeling_LDA(doc):
     # We add some words to the stop word list
