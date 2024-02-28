@@ -142,9 +142,10 @@ def texts_to_docs(nlp, chap_list: list[str]) -> list[Doc]:
     return docs
 
 
-def plot_data_per_year(nlp, chap_list: list[tuple[str, str]], chosen_year: str):
-    organized_by_year = organize_by_year(chap_list)
-    chaps_in_year = organized_by_year.get(chosen_year)
+def plot_data_per_year(nlp, file_path: str, chosen_year: str):
+    file_path_to_read = os.path.join(file_path, f'chaps_in_{chosen_year}.json')
+    with open(file_path_to_read, "r") as json_file:
+        chaps_in_year = json.load(json_file)
     docs = texts_to_docs(nlp, chaps_in_year)
 
     plot_most_freq_words_by_year(nlp, docs, chosen_year)
@@ -165,35 +166,71 @@ def plot_average_sentence_length(nlp, docs: list[Doc]):
     plt.show()
 
 
-def organize_by_year(chap_list: list[tuple[str, str]]) -> dict[str, list[str]]:
-    #TODO:check if works
+def organize_by_year(chap_list: list[tuple[str, str]]) -> None:
+    # run only once
+    folder_path = "chaps per year"
+    os.makedirs(folder_path, exist_ok=True)
     organized_by_year = {}
     for chap, year in chap_list:
         organized_by_year.setdefault(year, []).append(chap)
 
-        # filename = f"chaps_in_{year}.json"
-        # with open(filename, 'w') as json_file:
-        #     json.dump(organized_by_year[year], json_file)
-    return organized_by_year
+        filename = os.path.join(folder_path, f'chaps_in_{year}.json')
+        with open(filename, 'w') as json_file:
+            json.dump(organized_by_year[year], json_file)
 
 
-def organize_by_period_of_time(organized_by_year: dict[str, list[str]]) -> dict[str, list[str]]:
+def organize_by_period_of_time(chaps_per_year_folder: str) -> None:
+    # run only once
+    input_folder_path = chaps_per_year_folder
+    output_folder_path = "chaps per period"
+
+    os.makedirs(output_folder_path, exist_ok=True)
+
     periods = {"period1": [], "period2": [], "period3": []}
-    for year, chaps in organized_by_year.items():
-        if int(year) >= 1837 & int(year) <= 1841:
-            periods["period1"].extend(chaps)
-        elif int(year) >= 1843 & int(year) <= 1854:
-            periods["period2"].extend(chaps)
-        else:
-            periods["period3"].extend(chaps)
+    for filename in os.listdir(input_folder_path):
+        if filename.endswith(".json"):
+            file_path = os.path.join(input_folder_path, filename)
 
-    return periods
+            # Read data from the JSON file
+            with open(file_path, 'r') as json_file:
+                data = json.load(json_file)
+
+                # Extract the year from the filename
+                year = filename.split("_")[2].split(".")[0]
+
+                # Add chapters to the corresponding period
+                if 1837 <= int(year) <= 1841:
+                    periods["period1"].extend(data)
+                elif 1843 <= int(year) <= 1854:
+                    periods["period2"].extend(data)
+                else:
+                    periods["period3"].extend(data)
+
+    for period, chaps in periods.items():
+        period_folder_path = os.path.join(output_folder_path, period)
+        os.makedirs(period_folder_path, exist_ok=True)
+
+        output_filename = os.path.join(period_folder_path, f'chaps_in_{period}.json')
+        with open(output_filename, 'w') as json_file:
+            json.dump(chaps, json_file)
 
 
-def plot_data_per_period(nlp, chap_list: list[tuple[str, str]], chosen_period: str):
-    organized_by_year = organize_by_year(chap_list)
-    organize_by_period = organize_by_period_of_time(organized_by_year)
-    chaps_in_period = organize_by_period.get(chosen_period)
+def plot_data_per_period(nlp, chosen_period: str):
+    input_folder_path = os.path.join("chaps per period", chosen_period)
+
+    chaps_in_period = []
+    for filename in os.listdir(input_folder_path):
+        if filename.endswith(".json"):
+            file_path = os.path.join(input_folder_path, filename)
+
+            # Read data from the JSON file
+            with open(file_path, 'r') as json_file:
+                data = json.load(json_file)
+
+                # Check if the data corresponds to the chosen period
+                if filename.startswith(f'chaps_in_{chosen_period}'):
+                    chaps_in_period.extend(data)
+
     docs = texts_to_docs(nlp, chaps_in_period)
 
     plot_most_freq_words_by_year(nlp, docs, chosen_period)
@@ -230,7 +267,7 @@ def average_sentence_length(nlp, doc):
     return sum_len_of_sentences / len(sentences)
 
 
-#returns an array - not a doc object
+# returns an array - not a doc object
 def tokenize_text_to_sentences(doc: Doc) -> list[str]:
     sentences = [sentence.text.replace('\n', ' ').strip() for sentence in doc.sents]
     return sentences
@@ -307,6 +344,7 @@ def print_freq_words(freq_words):
         print(f'{word}: {freq} times')
     print('\n')
 
+
 @Language.component('set_custom_boundaries')
 def set_custom_boundaries(doc):
     predecessor_token = doc[0]
@@ -315,6 +353,7 @@ def set_custom_boundaries(doc):
             doc[token.i + 1].is_sent_start = False
         predecessor_token = token
     return doc
+
 
 def main():
     # loading spacy pipline
@@ -335,8 +374,11 @@ def main():
     # print(most_freq_words(nlp, docs[0]))
     # plot_data_per_year(nlp, check,"1843")
 
-    # plot_data_per_period(nlp, chap_list, "period1")
-    plot_data_per_year(nlp, chap_list, "1859")
+    chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
+    # plot_data_per_year(nlp, chaps_per_year_path, "1843")
+
+    # organize_by_period_of_time(chaps_per_year_path)
+    plot_data_per_period(nlp, "period1")
 
     # organized_by_year = organize_by_year(chap_list)
     # chaps_in_year = organized_by_year.get("1843")
