@@ -5,3 +5,4 @@ matplotlib
 pyLDAvis
 spacy
 en_core_web_lg (spacy)
+nltk

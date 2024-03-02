@@ -285,6 +285,83 @@ def sentiment_analysis(text):
     return sid.polarity_scores(text)['compound']
 
 
+def combine_matrices(matrix1, matrix2, write_path):
+    for i in range(len(matrix1)):
+        for num in matrix2[i]:
+            matrix1[i].append(num)
+    with open(write_path, "w") as json_file:
+        json.dump(matrix1, json_file)
+
+
+def verbs_tenses_percent(sentences, nlp):
+    past_count = 0
+    present_count = 0
+    future_count = 0
+
+    for sentence in sentences:
+        doc = nlp(sentence)
+
+        for token in doc:
+            if token.tag_ == "VBD":
+                past_count += 1
+            elif token.tag_ == "VBP" or token.tag_ == "VBZ" or token.tag_ == "VB":
+                present_count += 1
+            elif token.tag_ == "MD" and token.text.lower() in ["will", "shall"]:
+                future_count += 1
+                present_count -= 1
+
+    sum = past_count + present_count + future_count
+    output = [past_count / sum, present_count / sum, future_count / sum]
+    return output
+
+
+def save_pos_freq_words_verbs_matrix(tokenized_chaps_path, matrix, output_path, nlp):
+    files = sorted(os.listdir(tokenized_chaps_path))
+    i = 0
+    for filename in files:
+        filepath = os.path.join(tokenized_chaps_path, filename)
+        with open(filepath, "r") as json_file:
+            chap_sentences = json.load(json_file)
+        tenses = verbs_tenses_percent(chap_sentences, nlp)
+        for tense in tenses:
+            matrix[i].append(tense)
+        i += 1
+        print(i)
+
+    with open(output_path, "w") as json_file:
+        json.dump(matrix, json_file)
+
+
+def named_entity_percentage(chap_sentences, nlp):
+    num_of_words = 0
+    num_of_entities = 0
+
+    for sentence in chap_sentences:
+        doc = nlp(sentence)
+        for token in doc:
+            if not token.is_punct and not token.is_space:
+                num_of_words += 1
+        for ent in doc.ents:
+            num_of_entities += 1
+
+    return (num_of_entities / num_of_words)
+
+
+def save_pos_freq_words_verbs_entities_matrix(tokenized_chaps_path, matrix, output_path, nlp):
+    files = sorted(os.listdir(tokenized_chaps_path))
+    i = 0
+    for filename in files:
+        filepath = os.path.join(tokenized_chaps_path, filename)
+        with open(filepath, "r") as json_file:
+            chap_sentences = json.load(json_file)
+        matrix[i].append(named_entity_percentage(chap_sentences, nlp))
+        i += 1
+        print(i)
+
+    with open(output_path, "w") as json_file:
+        json.dump(matrix, json_file)
+
+
 def main():
     # loading spacy pipline
     nlp = spacy.load('en_core_web_lg')
@@ -296,8 +373,7 @@ def main():
     chap_list = load_txt_files(chaps_path)
     # most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
 
-    #TODO: check bug
-    create_data_most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
+    #create_data_most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
     # most_freq_words_ai(ROOT_DIR)
 
     tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
@@ -309,14 +385,6 @@ def main():
     #     chap = json.load(json_file)
     # print(chap_pos_percentage_vector(chap, nlp))
 
-    path = os.path.join(ROOT_DIR, 'Input_for_AI')
-    path2 = os.path.join(path, "chaps_pos_percentage_matrix.json")
-    path3 = os.path.join(path, "label_chaps_to_periods.json")
-    with open(path2, "r") as json_file:
-        chaps_pos_percentage_matrix = json.load(json_file)
-    with open(path3, "r") as json_file:
-        label_chaps_to_periods = json.load(json_file)
-    decision_tree(chaps_pos_percentage_matrix, label_chaps_to_periods)
 
     '''
     #AYELET- running AI
