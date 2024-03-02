@@ -349,7 +349,7 @@ def set_custom_boundaries(doc):
 
 
 def main():
-
+    return
     # loading spacy pipline
     nlp = spacy.load('en_core_web_lg')
     nlp.add_pipe("set_custom_boundaries", before="parser")

@@ -145,6 +145,8 @@ def chap_pos_percentage_vector(chap_sentences, nlp):
     pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "ADJ"))
     pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "ADV"))
     pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "INTJ"))
+    pos_percentege.append(chap_punctuation_percentage(chap_sentences, nlp))
+    pos_percentege.append(chap_pos_percentage(chap_sentences, nlp, "NOUN"))
 
     return pos_percentege
 
@@ -162,6 +164,20 @@ def chap_punctuation_percentage(chap_sentences, nlp):
                 num_of_words += 1
 
     return (num_of_punctuation / num_of_words)
+
+
+def save_chaps_pos_percentage_matrix(tokenized_chaps_path, output_path, nlp):
+    chaps_pos_percentage_matrix = []
+    files = sorted(os.listdir(tokenized_chaps_path))
+    for filename in files:
+        filepath = os.path.join(tokenized_chaps_path, filename)
+        with open(filepath, "r") as json_file:
+            chap_sentences = json.load(json_file)
+
+        chaps_pos_percentage_matrix.append(chap_pos_percentage_vector(chap_sentences, nlp))
+
+    with open(output_path, "w") as json_file:
+        json.dump(chaps_pos_percentage_matrix, json_file)
 
 
 def chaps_words_frequencies_matrix(chap_list: list[str], nlp):
@@ -244,10 +260,9 @@ def create_data_most_freq_words_ai(chap_list: list[tuple[str, str]], chaps_path:
     chaps = [chap for chap, year in chap_list]
     freq_words = chaps_words_frequencies_matrix(chaps, nlp)
     path = os.path.join(ROOT_DIR, "input_for_AI")
-
     # Write JSON data to files in the "input_for_ai" folder
-    with open(os.path.join(path, 'freq_words.json'), 'w') as freq_words_file:
-        json.dump(freq_words, freq_words_file)
+    with open(os.path.join(path, 'freq_words.json'), 'w') as json_file:
+        json.dump(freq_words, json_file)
 
     output_path = os.path.join(path, "freq_words_labels.json")
     label_chaps_to_periods(chaps_path, output_path)
@@ -285,7 +300,8 @@ def main():
     create_data_most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
     # most_freq_words_ai(ROOT_DIR)
 
-    # tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
+    tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
+
 
     # chap1 = os.path.join(tokenized_chaps_path, "A Tale of Two Cities(1859) 4.json")
     #
@@ -293,17 +309,27 @@ def main():
     #     chap = json.load(json_file)
     # print(chap_pos_percentage_vector(chap, nlp))
 
+    path = os.path.join(ROOT_DIR, 'Input_for_AI')
+    path2 = os.path.join(path, "chaps_pos_percentage_matrix.json")
+    path3 = os.path.join(path, "label_chaps_to_periods.json")
+    with open(path2, "r") as json_file:
+        chaps_pos_percentage_matrix = json.load(json_file)
+    with open(path3, "r") as json_file:
+        label_chaps_to_periods = json.load(json_file)
+    decision_tree(chaps_pos_percentage_matrix, label_chaps_to_periods)
+
     '''
     #AYELET- running AI
     path = os.path.join(ROOT_DIR, 'Input_for_AI')
-    path2 = os.path.join(path, "padded_int_length_of_sentences_matrix.json")
-    path3 = os.path.join(path, "label_tokenized_chaps_to_periods.json")
+    path2 = os.path.join(path, "chaps_pos_percentage_matrix.json")
+    path3 = os.path.join(path, "label_chaps_to_periods.json")
     with open(path2, "r") as json_file:
-        padded_int_length_of_sentences_matrix = json.load(json_file)
+        chaps_pos_percentage_matrix = json.load(json_file)
     with open(path3, "r") as json_file:
-        label_tokenized_chaps_to_periods = json.load(json_file)
-    logistic_regression(padded_int_length_of_sentences_matrix, label_tokenized_chaps_to_periods)
+        label_chaps_to_periods = json.load(json_file)
+    decision_tree(chaps_pos_percentage_matrix, label_chaps_to_periods)
     '''
+
 
 
 if __name__ == "__main__":
