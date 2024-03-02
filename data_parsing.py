@@ -14,6 +14,8 @@ from sklearn import preprocessing
 from sklearn import tree
 from main import most_freq_words
 from main import load_txt_files
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 
 # adding sentence tokenization rule for apostrophes for spacy
@@ -243,6 +245,10 @@ def most_freq_words_ai(ROOT_DIR):
         freq_words_labels = json.load(json_file)
 
     logistic_regression(freq_words_matrix, freq_words_labels)
+
+def sentiment_analysis(text):
+    sid = SentimentIntensityAnalyzer()
+    return sid.polarity_scores(text)['compound']
 
 
 def main():
