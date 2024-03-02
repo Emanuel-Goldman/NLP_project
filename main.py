@@ -356,15 +356,15 @@ def set_custom_boundaries(doc):
 
 
 def main():
-    # checking git out
+
     # loading spacy pipline
-    nlp = spacy.load('en_core_web_lg')
-    nlp.add_pipe("set_custom_boundaries", before="parser")
+    #nlp = spacy.load('en_core_web_lg')
+    #nlp.add_pipe("set_custom_boundaries", before="parser")
 
     # TODO: don't erase anything! you can put as comment if you don't want to run it all
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
-    chap_list = load_txt_files(CHAPS_PATH)
+    #ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    #CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
+    #chap_list = load_txt_files(CHAPS_PATH)
     # print(get_max_num_of_sentences(nlp, chap_list))
 
     # check = [("hadar hadar hadar Hadar lets see if its work, i have a dog and a cat, hadar.", "1843"), ("go to eat", "1843"), ("so pretty", "1843"),
@@ -375,11 +375,11 @@ def main():
     # print(most_freq_words(nlp, docs[0]))
     # plot_data_per_year(nlp, check,"1843")
 
-    chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
+    #chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
     # plot_data_per_year(nlp, chaps_per_year_path, "1843")
 
     # organize_by_period_of_time(chaps_per_year_path)
-    plot_data_per_period(nlp, "period1")
+    #plot_data_per_period(nlp, "period1")
 
     # organized_by_year = organize_by_year(chap_list)
     # chaps_in_year = organized_by_year.get("1843")
