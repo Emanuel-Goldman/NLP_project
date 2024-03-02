@@ -2,6 +2,8 @@ import os
 from collections import Counter
 
 import json
+from functools import reduce
+
 import gensim
 import matplotlib.pyplot as plt
 import pyLDAvis.gensim
@@ -135,7 +137,7 @@ def text_to_clean_lemma(nlp, text):
 
 
 def texts_to_docs(nlp, chap_list: list[str]) -> list[Doc]:
-    nlp.max_length = 1500000
+    nlp.max_length = 5000000
     docs = []
     for text in chap_list:
         docs.append(nlp(text))
@@ -179,17 +181,25 @@ def organize_by_year(chap_list: list[tuple[str, str]]) -> None:
             json.dump(organized_by_year[year], json_file)
 
 
+def determine_period(year: str):
+    if int(year) <= 1843:
+        return 1
+    elif int(year) <= 1853:
+        return 2
+    else:
+        return 3
+
+
 def organize_by_period_of_time(chaps_per_year_folder: str) -> None:
     # run only once
-    input_folder_path = chaps_per_year_folder
     output_folder_path = "chaps per period"
-
     os.makedirs(output_folder_path, exist_ok=True)
 
     periods = {"period1": [], "period2": [], "period3": []}
-    for filename in os.listdir(input_folder_path):
+
+    for filename in os.listdir(chaps_per_year_folder):
         if filename.endswith(".json"):
-            file_path = os.path.join(input_folder_path, filename)
+            file_path = os.path.join(chaps_per_year_folder, filename)
 
             # Read data from the JSON file
             with open(file_path, 'r') as json_file:
@@ -197,41 +207,36 @@ def organize_by_period_of_time(chaps_per_year_folder: str) -> None:
 
                 # Extract the year from the filename
                 year = filename.split("_")[2].split(".")[0]
+                period = determine_period(year)
 
-                # Add chapters to the corresponding period
-                if 1837 <= int(year) <= 1841:
-                    periods["period1"].extend(data)
-                elif 1843 <= int(year) <= 1854:
-                    periods["period2"].extend(data)
-                else:
-                    periods["period3"].extend(data)
+                # Create a folder for each period and save chapters
+                period_folder = os.path.join(output_folder_path, f"period{period}")
+                os.makedirs(period_folder, exist_ok=True)
+                period_filename = os.path.join(period_folder, filename)
+                with open(period_filename, 'w') as period_json_file:
+                    json.dump(data, period_json_file)
 
-    for period, chaps in periods.items():
-        period_folder_path = os.path.join(output_folder_path, period)
-        os.makedirs(period_folder_path, exist_ok=True)
-
-        output_filename = os.path.join(period_folder_path, f'chaps_in_{period}.json')
-        with open(output_filename, 'w') as json_file:
-            json.dump(chaps, json_file)
+    #
+    # for period, chaps in periods.items():
+    #     period_folder_path = os.path.join(output_folder_path, period)
+    #     os.makedirs(period_folder_path, exist_ok=True)
+    #
+    #     output_filename = os.path.join(period_folder_path, f'chaps_in_{period}.json')
+    #     with open(output_filename, 'w') as json_file:
+    #         json.dump(chaps, json_file)
 
 
 def plot_data_per_period(nlp, chosen_period: str):
     input_folder_path = os.path.join("chaps per period", chosen_period)
+    files_names_in_period = [file for file in os.listdir(input_folder_path) if file.endswith(".json")]
+    combined_data = []
+    for file_name in files_names_in_period:
+        file_path = os.path.join(input_folder_path, file_name)
+        with open(file_path, "r", encoding="utf-8") as file:
+            file_text = file.read()
+            combined_data.append(file_text)
 
-    chaps_in_period = []
-    for filename in os.listdir(input_folder_path):
-        if filename.endswith(".json"):
-            file_path = os.path.join(input_folder_path, filename)
-
-            # Read data from the JSON file
-            with open(file_path, 'r') as json_file:
-                data = json.load(json_file)
-
-                # Check if the data corresponds to the chosen period
-                if filename.startswith(f'chaps_in_{chosen_period}'):
-                    chaps_in_period.extend(data)
-
-    docs = texts_to_docs(nlp, chaps_in_period)
+    docs = texts_to_docs(nlp, combined_data)
 
     plot_most_freq_words_by_year(nlp, docs, chosen_period)
     plot_average_sentence_length(nlp, docs)
@@ -374,7 +379,7 @@ def main():
     # print(most_freq_words(nlp, docs[0]))
     # plot_data_per_year(nlp, check,"1843")
 
-    chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
+    # chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
     # plot_data_per_year(nlp, chaps_per_year_path, "1843")
 
     # organize_by_period_of_time(chaps_per_year_path)
