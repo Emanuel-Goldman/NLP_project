@@ -167,11 +167,11 @@ def chap_punctuation_percentage(chap_sentences, nlp):
 def chaps_words_frequencies_matrix(chap_list: list[str], nlp):
     docs = texts_to_docs(nlp, chap_list)
     freq_words_matrix = []
-    for doc in docs:
+    total_words_per_chap = [len(doc) for doc in docs]
+    for doc, total_words in zip(docs, total_words_per_chap):
         most_common_words_and_freq = most_freq_words(nlp, doc)
-        frequencies = [freq for word, freq in most_common_words_and_freq]
+        frequencies = [(freq / total_words) for word, freq in most_common_words_and_freq]
         freq_words_matrix.append(frequencies)
-    print(freq_words_matrix)
     return freq_words_matrix
 
 
@@ -221,17 +221,36 @@ def decision_tree(X, y):
     print(accuracy)
 
 
+# def label_chaps_to_periods(tokenized_chaps_path, output_path):
+#     labels = []
+#     files = sorted(os.listdir(tokenized_chaps_path))
+#
+#     for filename in files:
+#         parts = filename.split('(')
+#         year = int(parts[-1].split(')')[0])
+#
+#         if year < 1844:
+#             labels.append(1)
+#         elif year < 1854:
+#             labels.append(2)
+#         else:
+#             labels.append(3)
+#
+#     with open(output_path, "w") as json_file:
+#         json.dump(labels, json_file)
+
+
 def create_data_most_freq_words_ai(chap_list: list[tuple[str, str]], chaps_path: str, nlp, ROOT_DIR):
     chaps = [chap for chap, year in chap_list]
     freq_words = chaps_words_frequencies_matrix(chaps, nlp)
-    freq_words_labels = extract_year_from_filename(chaps_path)
     path = os.path.join(ROOT_DIR, "input_for_AI")
+
     # Write JSON data to files in the "input_for_ai" folder
     with open(os.path.join(path, 'freq_words.json'), 'w') as freq_words_file:
         json.dump(freq_words, freq_words_file)
 
-    with open(os.path.join(path, 'freq_words_labels.json'), 'w') as freq_words_labels_file:
-        json.dump(freq_words_labels, freq_words_labels_file)
+    output_path = os.path.join(path, "freq_words_labels.json")
+    label_chaps_to_periods(chaps_path, output_path)
 
 
 def most_freq_words_ai(ROOT_DIR):
@@ -262,8 +281,9 @@ def main():
     chap_list = load_txt_files(chaps_path)
     # most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
 
+    #TODO: check bug
     create_data_most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
-    most_freq_words_ai(ROOT_DIR)
+    # most_freq_words_ai(ROOT_DIR)
 
     # tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
 
@@ -277,12 +297,12 @@ def main():
     #AYELET- running AI
     path = os.path.join(ROOT_DIR, 'Input_for_AI')
     path2 = os.path.join(path, "padded_int_length_of_sentences_matrix.json")
-    path3 = os.path.join(path, "label_chaps_to_periods.json")
+    path3 = os.path.join(path, "label_tokenized_chaps_to_periods.json")
     with open(path2, "r") as json_file:
         padded_int_length_of_sentences_matrix = json.load(json_file)
     with open(path3, "r") as json_file:
-        label_chaps_to_periods = json.load(json_file)
-    logistic_regression(padded_int_length_of_sentences_matrix, label_chaps_to_periods)
+        label_tokenized_chaps_to_periods = json.load(json_file)
+    logistic_regression(padded_int_length_of_sentences_matrix, label_tokenized_chaps_to_periods)
     '''
 
 
