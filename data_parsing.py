@@ -2,7 +2,7 @@ from collections import Counter
 
 import spacy
 import os
-from main import tokenize_text_to_sentences, texts_to_docs, extract_year_from_filename
+from main import tokenize_text_to_sentences, texts_to_docs, extract_year_from_filename, lemmas_freq
 from spacy.language import Language
 import json
 import numpy as np
@@ -237,23 +237,40 @@ def decision_tree(X, y):
     print(accuracy)
 
 
-# def label_chaps_to_periods(tokenized_chaps_path, output_path):
-#     labels = []
-#     files = sorted(os.listdir(tokenized_chaps_path))
-#
-#     for filename in files:
-#         parts = filename.split('(')
-#         year = int(parts[-1].split(')')[0])
-#
-#         if year < 1844:
-#             labels.append(1)
-#         elif year < 1854:
-#             labels.append(2)
-#         else:
-#             labels.append(3)
-#
-#     with open(output_path, "w") as json_file:
-#         json.dump(labels, json_file)
+def chaps_lemmas_frequencies_matrix(chap_list: list[str], nlp):
+    docs = texts_to_docs(nlp, chap_list)
+    freq_lemmas_matrix = []
+    total_words_per_chap = [len(doc) for doc in docs]
+    for doc, total_words in zip(docs, total_words_per_chap):
+        most_common_lemmas_and_freq = lemmas_freq(nlp, doc)
+        frequencies = [(freq / total_words) for word, freq in most_common_lemmas_and_freq.items()]
+        freq_lemmas_matrix.append(frequencies)
+    return freq_lemmas_matrix
+
+
+def create_data_most_freq_lemmas_ai(chap_list: list[tuple[str, str]], chaps_path: str, nlp, ROOT_DIR):
+    chaps = [chap for chap, year in chap_list]
+    freq_lemmas = chaps_lemmas_frequencies_matrix(chaps, nlp)
+    path = os.path.join(ROOT_DIR, "input_for_AI")
+    # Write JSON data to files in the "input_for_ai" folder
+    with open(os.path.join(path, 'freq_lemmas.json'), 'w') as json_file:
+        json.dump(freq_lemmas, json_file)
+
+    output_path = os.path.join(path, "freq_lemmas_labels.json")
+    label_chaps_to_periods(chaps_path, output_path)
+
+
+def most_freq_lemmas_ai(ROOT_DIR):
+    path = os.path.join(ROOT_DIR, 'Input_for_AI')
+    path_freq_words = os.path.join(path, "freq_lemmas.json")
+    path_labels = os.path.join(path, "freq_lemmas_labels.json")
+    with open(path_freq_words, "r") as json_file:
+        freq_lemmas_matrix = json.load(json_file)
+
+    with open(path_labels, "r") as json_file:
+        freq_lemmas_labels = json.load(json_file)
+
+    logistic_regression(freq_lemmas_matrix, freq_lemmas_labels)
 
 
 def create_data_most_freq_words_ai(chap_list: list[tuple[str, str]], chaps_path: str, nlp, ROOT_DIR):
@@ -279,6 +296,7 @@ def most_freq_words_ai(ROOT_DIR):
         freq_words_labels = json.load(json_file)
 
     logistic_regression(freq_words_matrix, freq_words_labels)
+
 
 def sentiment_analysis(text):
     sid = SentimentIntensityAnalyzer()
@@ -373,18 +391,18 @@ def main():
     chap_list = load_txt_files(chaps_path)
     # most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
 
-    #create_data_most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
+    # create_data_most_freq_words_ai(chap_list, chaps_path, nlp, ROOT_DIR)
     # most_freq_words_ai(ROOT_DIR)
 
-    tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
-
+    create_data_most_freq_lemmas_ai(chap_list, chaps_path, nlp, ROOT_DIR)
+    # most_freq_lemmas_ai(ROOT_DIR)
+    # tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
 
     # chap1 = os.path.join(tokenized_chaps_path, "A Tale of Two Cities(1859) 4.json")
     #
     # with open(chap1, "r") as json_file:
     #     chap = json.load(json_file)
     # print(chap_pos_percentage_vector(chap, nlp))
-
 
     '''
     #AYELET- running AI
@@ -397,7 +415,6 @@ def main():
         label_chaps_to_periods = json.load(json_file)
     decision_tree(chaps_pos_percentage_matrix, label_chaps_to_periods)
     '''
-
 
 
 if __name__ == "__main__":
