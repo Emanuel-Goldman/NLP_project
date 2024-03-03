@@ -91,11 +91,7 @@ def plot_pos(docs: list[Doc]):
     plt.show()
 
 
-def plot_lemmas(nlp, docs: list[Doc]):
-    lemmas = []
-    for doc in docs:
-        lemmas.extend(text_to_lemma_pos(doc))
-
+def clean_lemmas(nlp, lemmas: list[tuple[str, str]]):
     stop_words = set(nlp.Defaults.stop_words)
     custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
     stop_words.update(custom_stop_words)
@@ -104,6 +100,30 @@ def plot_lemmas(nlp, docs: list[Doc]):
     # print(lemmas)
     lemmas_frequency = count_lemmas(lemmas)
     top_lemmas_frequency = dict(lemmas_frequency)
+    return top_lemmas_frequency
+
+
+def lemmas_freq(nlp, doc, top_n=10) -> dict[str, int]:
+    lemmas = text_to_lemma_pos(doc)
+    clean_lemmas_list = clean_lemmas(nlp, lemmas)
+
+    # Check if there are at least 10 items in the dictionary
+    if len(clean_lemmas_list) >= 10:
+        return dict(list(clean_lemmas_list.items())[:10])
+    else:
+        return clean_lemmas_list
+
+
+def lemmas_freq_all_docs(nlp, docs: list[Doc]) -> dict[str, int]:
+    lemmas = []
+    for doc in docs:
+        lemmas.extend(text_to_lemma_pos(doc))
+
+    return clean_lemmas(nlp, lemmas)
+
+
+def plot_lemmas(nlp, docs: list[Doc]):
+    top_lemmas_frequency = lemmas_freq_all_docs(nlp, docs)
     lemmas, frequencies = zip(*top_lemmas_frequency.items())
 
     plt.bar(lemmas, frequencies)
@@ -349,7 +369,6 @@ def set_custom_boundaries(doc):
 
 
 def main():
-    return
     # loading spacy pipline
     nlp = spacy.load('en_core_web_lg')
     nlp.add_pipe("set_custom_boundaries", before="parser")
@@ -360,19 +379,22 @@ def main():
     chap_list = load_txt_files(CHAPS_PATH)
     # print(get_max_num_of_sentences(nlp, chap_list))
 
-    # check = [("hadar hadar hadar Hadar lets see if its work, i have a dog and a cat, hadar.", "1843"), ("go to eat", "1843"), ("so pretty", "1843"),
+    # check = [("hadar hadar hadar Hadar lets see if it works, i have a dog and a cat, hadar.", "1843"),
+    #          ("go to eat", "1843"), ("so pretty", "1843"),
     #          ("have a nice day Hadar", "1837"),
     #          ("great!", "1843")]
-    # text =[text for text,year in check]
+    # text = [text for text, year in check]
     # docs = texts_to_docs(nlp, text)
+    # lemmas = lemmas_freq(nlp, docs[0])
+    # print(lemmas)
     # print(most_freq_words(nlp, docs[0]))
     # plot_data_per_year(nlp, check,"1843")
 
-    chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
+    # chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
     # plot_data_per_year(nlp, chaps_per_year_path, "1843")
 
     # organize_by_period_of_time(chaps_per_year_path)
-    plot_data_per_period(nlp, "period1")
+    # plot_data_per_period(nlp, "period1")
 
     # organized_by_year = organize_by_year(chap_list)
     # chaps_in_year = organized_by_year.get("1843")
