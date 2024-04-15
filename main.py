@@ -15,42 +15,39 @@ from deviding_to_chaps import get_books_names
 
 
 def most_freq_words(nlp, doc: Doc) -> list[tuple[str, int]]:
-    costume_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
-    for stopword in costume_stop_words:
-        lexeme = nlp.vocab[stopword]
-        lexeme.is_stop = True
-
-    filtered_tokens = [token.text.lower() for token in doc if
-                       token.text.lower() not in nlp.Defaults.stop_words and token.text.lower() not in
-                       costume_stop_words and token.text.lower().strip()]
-    print(filtered_tokens)
+    filtered_tokens = text_to_clean_tokens(doc, nlp)
     word_freq = Counter(filtered_tokens)
 
     most_common_words = word_freq.most_common(10)
     return most_common_words
 
 
-def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
+def text_to_clean_tokens(doc, nlp):
     # Create a set of custom stop words
-    costume_stop_words = {",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?", "The",
-                          "It", "‘", "’"}
+    custom_stop_words = {",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?", "The",
+                         "It", "‘", "’", "t"}
 
+    for stopword in custom_stop_words:
+        lexeme = nlp.vocab[stopword]
+        lexeme.is_stop = True
+
+    # Filter tokens based on stop words and additional criteria
+    filtered_tokens = [token.text.lower().rstrip('.') for token in doc if
+                       token.text.lower().rstrip('.') not in nlp.Defaults.stop_words and
+                       token.text.lower().rstrip('.') not in custom_stop_words and token.text.strip()]
+
+    # Remove empty tokens
+    filtered_tokens = [token for token in filtered_tokens if token]
+    return filtered_tokens
+
+
+def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
     # Initialize a Counter to store word frequencies
     word_freq = Counter()
 
-    # Loop over each document in the list
     for doc in docs:
-        # Update the set of stop words for each document
-        for stopword in costume_stop_words:
-            lexeme = nlp.vocab[stopword]
-            lexeme.is_stop = True
-
-        # Filter tokens based on stop words and additional criteria
-        filtered_tokens = [token.text.lower() for token in doc if
-                           token.text.lower() not in nlp.Defaults.stop_words and token.text.lower() not in
-                           costume_stop_words and token.text.strip()]
-
         # Update the overall word frequency counter
+        filtered_tokens = text_to_clean_tokens(doc, nlp)
         word_freq.update(filtered_tokens)
 
     # Get the 10 most common words
@@ -62,11 +59,6 @@ def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
 def text_to_tokens(text, doc):
     tokens = [token.text for token in doc]
     return tokens
-
-
-def text_to_clean_tokens(tokens):
-    cleaned_tokens = [tokens.text for tokens in tokens if not tokens.is_stop]
-    return cleaned_tokens
 
 
 def classifier_part_of_speech(text):
@@ -93,8 +85,11 @@ def plot_pos(docs: list[Doc]):
 
 def clean_lemmas(nlp, lemmas: list[tuple[str, str]]):
     stop_words = set(nlp.Defaults.stop_words)
-    custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?"]
+    custom_stop_words = [",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?", "t"]
     stop_words.update(custom_stop_words)
+
+    lemmas = [(lemma.rstrip('.'), pos) for lemma, pos in lemmas]
+    lemmas = [(lemma, pos) for lemma, pos in lemmas if lemma]
     lemmas = [(lemma, pos) for lemma, pos in lemmas if lemma.lower() not in stop_words]
 
     # print(lemmas)
@@ -179,11 +174,12 @@ def plot_average_sentence_length(nlp, docs: list[Doc]):
     average_sentences = []
     for doc in docs:
         average_sentences.append(average_sentence_length(nlp, doc))
-
-    plt.scatter(range(1, len(docs) + 1), average_sentences)
+    docs_len = len(docs)
+    x = [str(i + 1) for i in range(docs_len)]
+    plt.bar(x, average_sentences)
     plt.xlabel('Document')
     plt.ylabel('Average Sentences')
-    plt.title('Average Number of Sentences in Different Documents')
+    plt.title('Average Sentences length in Different Documents')
     plt.show()
 
 
@@ -394,8 +390,9 @@ def main():
     # plot_data_per_year(nlp, chaps_per_year_path, "1843")
 
     # organize_by_period_of_time(chaps_per_year_path)
-    # plot_data_per_period(nlp, "period1")
-
+    plot_data_per_period(nlp, "period1")
+    # plot_data_per_period(nlp, "period2")
+    # plot_data_per_period(nlp, "period3")
     # organized_by_year = organize_by_year(chap_list)
     # chaps_in_year = organized_by_year.get("1843")
     # docs = texts_to_docs(nlp, chaps_in_year)
