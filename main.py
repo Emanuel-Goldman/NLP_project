@@ -369,22 +369,11 @@ def main():
     nlp = spacy.load('en_core_web_lg')
     nlp.add_pipe("set_custom_boundaries", before="parser")
 
-    # TODO: don't erase anything! you can put as comment if you don't want to run it all
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
     chap_list = load_txt_files(CHAPS_PATH)
     # print(get_max_num_of_sentences(nlp, chap_list))
 
-    # check = [("hadar hadar hadar Hadar lets see if it works, i have a dog and a cat, hadar.", "1843"),
-    #          ("go to eat", "1843"), ("so pretty", "1843"),
-    #          ("have a nice day Hadar", "1837"),
-    #          ("great!", "1843")]
-    # text = [text for text, year in check]
-    # docs = texts_to_docs(nlp, text)
-    # lemmas = lemmas_freq(nlp, docs[0])
-    # print(lemmas)
-    # print(most_freq_words(nlp, docs[0]))
-    # plot_data_per_year(nlp, check,"1843")
 
     # chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
     # plot_data_per_year(nlp, chaps_per_year_path, "1843")
