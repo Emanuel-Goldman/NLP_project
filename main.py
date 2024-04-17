@@ -7,7 +7,7 @@ import gensim
 import matplotlib.pyplot as plt
 import pyLDAvis.gensim
 import spacy
-from gensim.corpora import Dictionary
+from gensim import corpora
 from gensim.models import LdaModel
 from spacy.tokens import Doc
 from spacy.language import Language
@@ -25,7 +25,7 @@ def most_freq_words(nlp, doc: Doc) -> list[tuple[str, int]]:
 def text_to_clean_tokens(doc, nlp):
     # Create a set of custom stop words
     custom_stop_words = {",", " ", ".", "\n", ";", "-", "--", ":", '“', '”', "'", '"', "\n\n", "_", "!", "?", "The",
-                         "It", "‘", "’", "t"}
+                         "It", "‘", "’", "t", "[", "]", "(", ")"}
 
     for stopword in custom_stop_words:
         lexeme = nlp.vocab[stopword]
@@ -46,13 +46,12 @@ def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
     word_freq = Counter()
 
     for doc in docs:
-        # Update the overall word frequency counter
         filtered_tokens = text_to_clean_tokens(doc, nlp)
+        # Update the overall word frequency counter
         word_freq.update(filtered_tokens)
 
     # Get the 10 most common words
     most_common_words = word_freq.most_common(10)
-    # print(most_common_words)
     return most_common_words
 
 
@@ -230,8 +229,7 @@ def organize_by_period_of_time(chaps_per_year_folder: str) -> None:
                     json.dump(data, period_json_file)
 
 
-def plot_data_per_period(nlp, chosen_period: str):
-    input_folder_path = os.path.join("chaps per period", chosen_period)
+def combine_data(input_folder_path):
     files_names_in_period = [file for file in os.listdir(input_folder_path) if file.endswith(".json")]
     combined_data = []
     for file_name in files_names_in_period:
@@ -239,7 +237,12 @@ def plot_data_per_period(nlp, chosen_period: str):
         with open(file_path, "r", encoding="utf-8") as file:
             file_text = file.read()
             combined_data.append(file_text)
+    return combined_data
 
+
+def plot_data_per_period(nlp, chosen_period: str):
+    input_folder_path = os.path.join("chaps per period", chosen_period)
+    combined_data = combine_data(input_folder_path)
     docs = texts_to_docs(nlp, combined_data)
 
     plot_most_freq_words_by_year(nlp, docs, chosen_period)
@@ -282,34 +285,29 @@ def tokenize_text_to_sentences(doc: Doc) -> list[str]:
     return sentences
 
 
-def topic_modeling_LDA(doc):
-    # We add some words to the stop word list
-    texts, article = [], []
+def period_topic_modeling(chosen_period: str, nlp):
+    input_folder_path = os.path.join("chaps per period", chosen_period)
+    combined_data = combine_data(input_folder_path)
+    docs = texts_to_docs(nlp, combined_data)
+    doc_tokens = []
+    for doc in docs:
+        filtered_tokens = text_to_clean_tokens(doc, nlp)
+        doc_tokens.append(filtered_tokens)
 
-    for word in doc:
+    html_name = 'lda_visualization{}.html'.format(chosen_period)
+    topic_modeling_lda(doc_tokens, html_name)
 
-        if word.text != '\n' and not word.is_stop and not word.is_punct and not word.like_num and word.text != 'I':
-            article.append(word.lemma_)
 
-        if word.text == '\n':
-            texts.append(article)
-            article = []
+def topic_modeling_lda(doc_tokens, html_name):
+    dictionary = corpora.Dictionary(doc_tokens)
 
-    bigram = gensim.models.phrases.Phrases(texts)
-    texts = [bigram[line] for line in texts]
-    texts = [bigram[line] for line in texts]
-
-    dictionary = Dictionary(texts)
-    corpus = [dictionary.doc2bow(text) for text in texts]
+    # Convert tokenized documents into a document-term matrix
+    corpus = [dictionary.doc2bow(doc) for doc in doc_tokens]
+    # Train the LDA model
     lda_model = LdaModel(corpus=corpus, num_topics=10, id2word=dictionary)
     print(lda_model.show_topics())
     vis_data = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary)
-    pyLDAvis.save_html(vis_data, 'lda_visualization.html')
-
-
-def text_to_vec(nlp, text):
-    doc = nlp(text)
-    return doc
+    pyLDAvis.save_html(vis_data, html_name)
 
 
 def get_max_num_of_sentences(nlp, chap_list: list[tuple[str, str]]):
@@ -369,26 +367,22 @@ def main():
     nlp = spacy.load('en_core_web_lg')
     nlp.add_pipe("set_custom_boundaries", before="parser")
 
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
-    chap_list = load_txt_files(CHAPS_PATH)
-    # print(get_max_num_of_sentences(nlp, chap_list))
-
-
+    # ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    # CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
+    # chap_list = load_txt_files(CHAPS_PATH)
+    #
     # chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
     # plot_data_per_year(nlp, chaps_per_year_path, "1843")
-
+    #
     # organize_by_period_of_time(chaps_per_year_path)
-    plot_data_per_period(nlp, "period1")
+    #
+    # plot_data_per_period(nlp, "period1")
     # plot_data_per_period(nlp, "period2")
     # plot_data_per_period(nlp, "period3")
-    # organized_by_year = organize_by_year(chap_list)
-    # chaps_in_year = organized_by_year.get("1843")
-    # docs = texts_to_docs(nlp, chaps_in_year)
-    # print(most_freq_words(nlp, docs[0]))
-
-    # topic_modeling_LDA(docs_list)
-
+    #
+    # period_topic_modeling("period1", nlp)
+    # period_topic_modeling("period2", nlp)
+    # period_topic_modeling("period3", nlp)
 
 if __name__ == "__main__":
     main()
