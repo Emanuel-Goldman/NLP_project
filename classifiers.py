@@ -149,12 +149,31 @@ def run_classifier(path1, path2):
         input = json.load(json_file)
     print("punctuation marks: " + str(logistic_regression(input, labels)))
 
+
+def run_classifier_without_noise(path1, path2):
+    with open(path2, "r") as json_file:
+        labels = json.load(json_file)
+
+    input_path = os.path.join(path1, "chaps_pos_freq_words_sents_punct_marks_matrix.json")
+    with open(input_path, "r") as json_file:
+        input = json.load(json_file)
+    print("mlp: " + str(mlp_classifier(input, labels)))
+    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_entities_sents_matrix.json")
+    with open(input_path, "r") as json_file:
+        input = json.load(json_file)
+    print("decision tree: " + str(decision_tree(input, labels)))
+    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_entities_sents_punct_marks_matrix.json")
+    with open(input_path, "r") as json_file:
+        input = json.load(json_file)
+    print("logistic regression: " + str(logistic_regression(input, labels)))
+
 def main():
     # folder paths
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     path1 = os.path.join(ROOT_DIR, 'Input_for_AI')
     path2 = os.path.join(path1, "label_chaps_to_periods.json")
     run_classifier(path1, path2)
+    run_classifier_without_noise(path1, path2)
 
 
 
