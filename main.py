@@ -1,9 +1,6 @@
 import os
 from collections import Counter
-
 import json
-
-import gensim
 import matplotlib.pyplot as plt
 import pyLDAvis.gensim
 import spacy
@@ -55,21 +52,11 @@ def most_freq_words_in_all_chaps(nlp, docs: list[Doc]) -> list[tuple[str, int]]:
     return most_common_words
 
 
-def text_to_tokens(text, doc):
-    tokens = [token.text for token in doc]
-    return tokens
-
-
-def classifier_part_of_speech(text):
-    return
-
-
 def plot_pos(docs: list[Doc]):
     pos = []
     for doc in docs:
         pos.extend(text_to_lemma_pos(doc))
 
-    # print(pos)
     pos_frequency = count_pos(pos)
     top_pos_frequency = dict(pos_frequency)
     pos, frequencies = zip(*top_pos_frequency.items())
@@ -97,7 +84,7 @@ def clean_lemmas(nlp, lemmas: list[tuple[str, str]]):
     return top_lemmas_frequency
 
 
-def lemmas_freq(nlp, doc, top_n=10) -> dict[str, int]:
+def lemmas_freq(nlp, doc) -> dict[str, int]:
     lemmas = text_to_lemma_pos(doc)
     clean_lemmas_list = clean_lemmas(nlp, lemmas)
 
@@ -363,26 +350,17 @@ def set_custom_boundaries(doc):
 
 
 def main():
-    # loading spacy pipline
     nlp = spacy.load('en_core_web_lg')
     nlp.add_pipe("set_custom_boundaries", before="parser")
 
-    # ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    # CHAPS_PATH = os.path.join(ROOT_DIR, 'chaps')
-    # chap_list = load_txt_files(CHAPS_PATH)
-    #
-    # chaps_per_year_path = os.path.join(ROOT_DIR, 'chaps per year')
-    # plot_data_per_year(nlp, chaps_per_year_path, "1843")
-    #
-    # organize_by_period_of_time(chaps_per_year_path)
-    #
-    # plot_data_per_period(nlp, "period1")
-    # plot_data_per_period(nlp, "period2")
-    # plot_data_per_period(nlp, "period3")
-    #
-    # period_topic_modeling("period1", nlp)
-    # period_topic_modeling("period2", nlp)
-    # period_topic_modeling("period3", nlp)
+    plot_data_per_period(nlp, "period1")
+    plot_data_per_period(nlp, "period2")
+    plot_data_per_period(nlp, "period3")
+
+    period_topic_modeling("period1", nlp)
+    period_topic_modeling("period2", nlp)
+    period_topic_modeling("period3", nlp)
+
 
 if __name__ == "__main__":
     main()

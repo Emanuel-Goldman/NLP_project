@@ -10,27 +10,27 @@ def text_to_chapter_list(book):
     return chapters_list
 
 
-# def get_book_list():
-#     folder = r"C:\Users\User\PycharmProjects\NLP_project\Books"
-#     books_names = get_books_names(folder)
-#
-#     books_list = []
-#     for book_name in books_names:
-#         year = get_year(book_name)
-#         print("the book name is: " + book_name + " and the year is: " + year)
-#
-#         book_path = folder + "\\" + book_name + ".txt"
-#
-#         with open(book_path, "r", encoding="utf-8") as file:
-#             book_text = file.read()
-#         books_list.append({'text': book_text, 'year': year})
-#     return books_list
+def get_book_list():
+    folder = r"C:\Users\User\PycharmProjects\NLP_project\Books"
+    books_names = get_books_names(folder)
+
+    books_list = []
+    for book_name in books_names:
+        year = get_year(book_name)
+        print("the book name is: " + book_name + " and the year is: " + year)
+
+        book_path = folder + "\\" + book_name + ".txt"
+
+        with open(book_path, "r", encoding="utf-8") as file:
+            book_text = file.read()
+        books_list.append({'text': book_text, 'year': year})
+    return books_list
 
 
 def get_chap_list(path):
     folder = r"C:\Users\Lenovo\OneDrive - post.bgu.ac.il\שולחן העבודה\Charles Dickens Books\Books"
     books_names = get_books_names(folder)
-
+    chap_list = []
     for book_name in books_names:
 
         chap_list = []
@@ -95,6 +95,7 @@ def find_position_last_chap(text):
 def main():
     folder = r"C:\Users\Lenovo\OneDrive - post.bgu.ac.il\שולחן העבודה\Charles Dickens Books\Books"
     books_names = get_books_names(folder)
+    chaps_path = ""
 
     for book_name in books_names:
 

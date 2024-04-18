@@ -1,6 +1,6 @@
 import spacy
 import os
-from main import tokenize_text_to_sentences, texts_to_docs, extract_year_from_filename, lemmas_freq
+from main import tokenize_text_to_sentences, texts_to_docs, lemmas_freq
 from spacy.language import Language
 import json
 import numpy as np
@@ -82,7 +82,7 @@ def padding_float_length_of_sentences_matrix(read_path, output_path):
         json.dump(padded_matrix, json_file)
 
 
-# lable chapters to periods vector and save as a json file
+# label chapters to periods vector and save as a json file
 def label_chaps_to_periods(tokenized_chaps_path, output_path):
     labels = []
 
@@ -103,7 +103,7 @@ def label_chaps_to_periods(tokenized_chaps_path, output_path):
         json.dump(labels, json_file)
 
 
-#save the matrix of sentences lengths casting to int insetead of float
+# save the matrix of sentences lengths casting to int instead of float
 def chaps_int_length_of_sentences_matrix(read_path, write_path):
     with open(read_path, "r") as json_file:
         float_length_of_sentences_matrix = json.load(json_file)
@@ -114,7 +114,7 @@ def chaps_int_length_of_sentences_matrix(read_path, write_path):
         json.dump(int_length_of_sentences_matrix, json_file)
 
 
-#returns the percentage of a pos in a chapter
+# returns the percentage of a pos in a chapter
 def chap_pos_percentage(chap_sentences, nlp, pos):
     num_of_pos = 0
     num_of_words = 0
@@ -127,10 +127,10 @@ def chap_pos_percentage(chap_sentences, nlp, pos):
             if not token.is_punct and not token.is_space:
                 num_of_words += 1
 
-    return (num_of_pos / num_of_words)
+    return num_of_pos / num_of_words
 
 
-#returns a vector for a chapter of all poses percentage
+# returns a vector for a chapter of all poses percentage
 def chap_pos_percentage_vector(chap_sentences, nlp):
     pos_percentege = []
 
@@ -144,7 +144,7 @@ def chap_pos_percentage_vector(chap_sentences, nlp):
     return pos_percentege
 
 
-#returns the percentage of the chapter's punctuation
+# returns the percentage of the chapter's punctuation
 def chap_punctuation_percentage(chap_sentences, nlp):
     num_of_punctuation = 0
     num_of_words = 0
@@ -157,10 +157,10 @@ def chap_punctuation_percentage(chap_sentences, nlp):
             if not token.is_punct and not token.is_space:
                 num_of_words += 1
 
-    return (num_of_punctuation / num_of_words)
+    return num_of_punctuation / num_of_words
 
 
-#returns the percentage of the chapter's question marks out of the chapter's punctuation
+# returns the percentage of the chapter's question marks out of the chapter's punctuation
 def chap_question_mark_percentage(chap_sentences, nlp):
     num_of_punctuation = 0
     num_of_question_mark = 0
@@ -173,10 +173,10 @@ def chap_question_mark_percentage(chap_sentences, nlp):
             if token.text == "?":
                 num_of_question_mark += 1
 
-    return (num_of_question_mark / num_of_punctuation)
+    return num_of_question_mark / num_of_punctuation
 
 
-#save a matrix of the chapters's pos percentage
+# save a matrix of the chapters' pos percentage
 def save_chaps_pos_percentage_matrix(tokenized_chaps_path, output_path, nlp):
     chaps_pos_percentage_matrix = []
     files = sorted(os.listdir(tokenized_chaps_path))
@@ -191,7 +191,7 @@ def save_chaps_pos_percentage_matrix(tokenized_chaps_path, output_path, nlp):
         json.dump(chaps_pos_percentage_matrix, json_file)
 
 
-#returns a matrix with the chapter's most common words' frequencies
+# returns a matrix with the chapter's most common words' frequencies
 def chaps_words_frequencies_matrix(chap_list: list[str], nlp):
     docs = texts_to_docs(nlp, chap_list)
     freq_words_matrix = []
@@ -203,7 +203,7 @@ def chaps_words_frequencies_matrix(chap_list: list[str], nlp):
     return freq_words_matrix
 
 
-#returns a matrix with the chapter's most common lemas' frequencies
+# returns a matrix with the chapter's most common lemmas' frequencies
 def chaps_lemmas_frequencies_matrix(chap_list: list[str], nlp):
     docs = texts_to_docs(nlp, chap_list)
     freq_lemmas_matrix = []
@@ -215,7 +215,7 @@ def chaps_lemmas_frequencies_matrix(chap_list: list[str], nlp):
     return freq_lemmas_matrix
 
 
-#save the matrix of the chapters' lemmas frequencies
+# save the matrix of the chapters' lemmas frequencies
 def create_data_most_freq_lemmas_ai(chap_list: list[tuple[str, str]], chaps_path: str, nlp, ROOT_DIR):
     chaps = [chap for chap, year in chap_list]
     freq_lemmas = chaps_lemmas_frequencies_matrix(chaps, nlp)
@@ -228,7 +228,7 @@ def create_data_most_freq_lemmas_ai(chap_list: list[tuple[str, str]], chaps_path
     label_chaps_to_periods(chaps_path, output_path)
 
 
-#save the matrix of the chapters' most common words frequencies
+# save the matrix of the chapters' most common words frequencies
 def create_data_most_freq_words_ai(chap_list: list[tuple[str, str]], chaps_path: str, nlp, ROOT_DIR):
     chaps = [chap for chap, year in chap_list]
     freq_words = chaps_words_frequencies_matrix(chaps, nlp)
@@ -241,13 +241,13 @@ def create_data_most_freq_words_ai(chap_list: list[tuple[str, str]], chaps_path:
     label_chaps_to_periods(chaps_path, output_path)
 
 
-#return a score to describe the sentiment of the text
+# return a score to describe the sentiment of the text
 def sentiment_analysis(text):
     sid = SentimentIntensityAnalyzer()
     return sid.polarity_scores(text)['compound']
 
 
-#combine two matrices together
+# combine two matrices together
 def combine_matrices(matrix1, matrix2, write_path):
     for i in range(len(matrix1)):
         for num in matrix2[i]:
@@ -256,7 +256,7 @@ def combine_matrices(matrix1, matrix2, write_path):
         json.dump(matrix1, json_file)
 
 
-#returns a list of the tenses' percentage of a chapter
+# returns a list of the tenses' percentage of a chapter
 def verbs_tenses_percent(sentences, nlp):
     past_count = 0
     present_count = 0
@@ -279,7 +279,7 @@ def verbs_tenses_percent(sentences, nlp):
     return output
 
 
-#save a matrix of the chapters verb tenses and pos
+# save a matrix of the chapters verb tenses and pos
 def save_pos_freq_words_verbs_matrix(tokenized_chaps_path, matrix, output_path, nlp):
     files = sorted(os.listdir(tokenized_chaps_path))
     i = 0
@@ -297,7 +297,7 @@ def save_pos_freq_words_verbs_matrix(tokenized_chaps_path, matrix, output_path, 
         json.dump(matrix, json_file)
 
 
-#return the perecentage of named entity in a chapter
+# return the percentage of named entity in a chapter
 def named_entity_percentage(chap_sentences, nlp):
     num_of_words = 0
     num_of_entities = 0
@@ -310,10 +310,10 @@ def named_entity_percentage(chap_sentences, nlp):
         for ent in doc.ents:
             num_of_entities += 1
 
-    return (num_of_entities / num_of_words)
+    return num_of_entities / num_of_words
 
 
-#save a matrix of the chapters verb tenses named entities and pos
+# save a matrix of the chapters verb tenses named entities and pos
 def save_pos_freq_words_verbs_entities_matrix(tokenized_chaps_path, matrix, output_path, nlp):
     files = sorted(os.listdir(tokenized_chaps_path))
     i = 0
@@ -339,7 +339,6 @@ def main():
     chaps_path = os.path.join(ROOT_DIR, 'chaps')
     tokenized_chaps_path = os.path.join(ROOT_DIR, 'Tokenized_Chaps')
     path = os.path.join(ROOT_DIR, 'Input_for_AI')
-
 
 
 if __name__ == "__main__":

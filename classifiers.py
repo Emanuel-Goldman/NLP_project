@@ -57,7 +57,7 @@ def decision_tree(X, y):
     return accuracy
 
 
-#run logistic regression on the chapters' lemmas frequencies
+# run logistic regression on the chapters' lemmas frequencies
 def most_freq_lemmas_ai(ROOT_DIR):
     path = os.path.join(ROOT_DIR, 'Input_for_AI')
     path_freq_words = os.path.join(path, "freq_lemmas.json")
@@ -69,6 +69,7 @@ def most_freq_lemmas_ai(ROOT_DIR):
         freq_lemmas_labels = json.load(json_file)
 
     logistic_regression(freq_lemmas_matrix, freq_lemmas_labels)
+
 
 # run logistic regression on the chapters' most common words frequencies
 def most_freq_words_ai(ROOT_DIR):
@@ -88,39 +89,47 @@ def run_classifier(path1, path2):
     with open(path2, "r") as json_file:
         labels = json.load(json_file)
 
-    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_entities_lemmas_sents_punct_marks_matrix.json") #all the featurs
+    input_path = os.path.join(path1,
+                              "chaps_pos_freq_words_tense_entities_lemmas_sents_punct_marks_matrix.json")  # all the features
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_entities_lemmas_sents_matrix.json") #all the features besides punctuation marks
+    input_path = os.path.join(path1,
+                              "chaps_pos_freq_words_tense_entities_lemmas_sents_matrix.json")  # all the features besides punctuation marks
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides punctuation marks: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_pos_percentage_tense_entities_lemmas_sents_punct_marks_matrix.json") #all the features besides freq words
+    input_path = os.path.join(path1,
+                              "chaps_pos_percentage_tense_entities_lemmas_sents_punct_marks_matrix.json")  # all the features besides freq words
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides freq words: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_entities_lemmas_punct_marks_matrix.json") #all the features besides sentiments
+    input_path = os.path.join(path1,
+                              "chaps_pos_freq_words_tense_entities_lemmas_punct_marks_matrix.json")  # all the features besides sentiments
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides sentiments: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_pos_freq_words_entities_lemmas_sents_punct_marks_matrix.json") #all the features besides verb tenses
+    input_path = os.path.join(path1,
+                              "chaps_pos_freq_words_entities_lemmas_sents_punct_marks_matrix.json")  # all the features besides verb tenses
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides verb tenses: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_lemmas_sents_punct_marks_matrix.json") #all the features besides named entities
+    input_path = os.path.join(path1,
+                              "chaps_pos_freq_words_tense_lemmas_sents_punct_marks_matrix.json")  # all the features besides named entities
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides named entities: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_freq_words_tense_entities_lemmas_sents_punct_marks_matrix.json")  # all the features besides pos
+    input_path = os.path.join(path1,
+                              "chaps_freq_words_tense_entities_lemmas_sents_punct_marks_matrix.json")  # all the features besides pos
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides pos: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1, "chaps_pos_freq_words_tense_entities_sents_punct_marks_matrix.json")  # all the features besides freq lemmas
+    input_path = os.path.join(path1,
+                              "chaps_pos_freq_words_tense_entities_sents_punct_marks_matrix.json")  # all the features besides freq lemmas
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("all the featurs besides freq lemmas: " + str(logistic_regression(input, labels)))
-    input_path = os.path.join(path1,"chaps_pos_percentage_matrix.json")  # pos
+    input_path = os.path.join(path1, "chaps_pos_percentage_matrix.json")  # pos
     with open(input_path, "r") as json_file:
         input = json.load(json_file)
     print("pos: " + str(logistic_regression(input, labels)))
@@ -167,6 +176,7 @@ def run_classifier_without_noise(path1, path2):
         input = json.load(json_file)
     print("logistic regression: " + str(logistic_regression(input, labels)))
 
+
 def main():
     # folder paths
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -174,7 +184,6 @@ def main():
     path2 = os.path.join(path1, "label_chaps_to_periods.json")
     run_classifier(path1, path2)
     run_classifier_without_noise(path1, path2)
-
 
 
 if __name__ == "__main__":
